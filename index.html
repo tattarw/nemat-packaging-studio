@@ -332,10 +332,6 @@ body{background:var(--black);color:var(--text);font-family:'Montserrat',sans-ser
       <input id="geminiKeyInput" type="password" placeholder="Paste your key from aistudio.google.com" style="flex:1;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:.35rem .5rem;color:var(--text);font-size:.72rem;font-family:inherit" oninput="GEMINI_KEY=this.value.trim();document.getElementById('keyStatus').textContent=this.value.trim()?'Ready':'No key'">
       <span id="keyStatus" style="font-size:.6rem;color:var(--text-low)">No key</span>
     </div>
-    <script>
-      // Auto-hide key bar if server injected a key
-      if(GEMINI_KEY){document.getElementById('apiKeyBar').style.display='none';}
-    </script>
 
     <div class="drop" id="drop" onclick="document.getElementById('fileIn').click()"
       ondragover="event.preventDefault();this.classList.add('on')"
@@ -441,6 +437,8 @@ body{background:var(--black);color:var(--text);font-family:'Montserrat',sans-ser
 
 <script>
 let GEMINI_KEY='';
+// Auto-hide key bar if server injected a key
+if(GEMINI_KEY){const kb=document.getElementById('apiKeyBar');if(kb)kb.style.display='none';}
 
 // ── PHYSICAL DIMENSIONS — real measurements for 8ml Nemat attar ──
 const PHYSICAL={
