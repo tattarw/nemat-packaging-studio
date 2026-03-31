@@ -443,10 +443,11 @@ if(GEMINI_KEY){const kb=document.getElementById('apiKeyBar');if(kb)kb.style.disp
 // ── PHYSICAL DIMENSIONS — real measurements for 8ml Nemat attar ──
 const PHYSICAL={
   box:{
-    w_mm:35, d_mm:35, h_mm:90,
-    face_w:'35mm', face_h:'90mm',
-    face_ratio:'1:2.6 (portrait, taller than 2:3)',
-    desc:'35 × 90 mm front face — a SMALL box, roughly the size of a cigarette lighter. Text must be sized to work at this physical scale.',
+    w_mm:35, d_mm:22, h_mm:88,
+    face_w:'35mm', face_h:'88mm',
+    side_w:'22mm', side_h:'88mm',
+    face_ratio:'1:2.5 (portrait, taller than 2:3)',
+    desc:'35 × 22 × 88 mm box — front face is 35 × 88 mm, side panel is 22 × 88 mm. Very SMALL box, roughly the size of a cigarette lighter. Text must be sized to work at this physical scale.',
     min_text:'Brand name NEMAT: minimum 5mm cap height. Scent name: minimum 3.5mm. ATTAR: minimum 2mm. Anything smaller is unreadable at 35mm width.'
   },
   bottle:{
@@ -455,11 +456,10 @@ const PHYSICAL={
     desc:'25mm diameter × 70mm tall cylindrical roll-on. Very small — fits in a palm.'
   },
   label:{
-    w_mm:72, h_mm:26,
-    overlap_mm:6,
-    desc:'72 × 26 mm flat unrolled rectangle (circumference minus 6mm overlap × 26mm visible height). Landscape, roughly 2.8:1 ratio — much WIDER than tall.',
+    w_mm:48, h_mm:25,
+    desc:'48 × 25 mm flat label. Landscape, roughly 1.9:1 ratio — wider than tall. Wraps around the front portion of a 25mm diameter bottle.',
     min_text:'NEMAT: minimum 4mm cap height. Scent name: minimum 2.5mm. All other text: minimum 1.8mm.',
-    ratio:'2.8:1 landscape (wider than tall, like a bookmark on its side)'
+    ratio:'1.9:1 landscape (wider than tall)'
   }
 };
 
@@ -840,6 +840,9 @@ JSON schema (fill every field with specific, detailed observations — never lea
     if(!parsed.brand||!parsed.brand.scent_name||parsed.brand.scent_name.length<2)
       throw new Error('Scent name not read. Got: "'+(parsed.brand&&parsed.brand.scent_name)+'"');
     analysis=parsed.brand;
+    // Map JSON field "name" → "brand_name" (JSON schema uses "name" but code expects "brand_name")
+    if(!analysis.brand_name && analysis.name) analysis.brand_name = analysis.name;
+    if(!analysis.brand_name) analysis.brand_name = 'NEMAT';
     analysis.deep=parsed;
     palette=detectPalette(analysis.scent_category);
     renderAnalysis();
