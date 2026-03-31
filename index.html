@@ -327,6 +327,12 @@ body{background:var(--black);color:var(--text);font-family:'Montserrat',sans-ser
 
   <div class="panel" id="uploadPanel">
     <div class="sec">Upload artwork</div>
+    <div class="api-key-bar" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;padding:.5rem .7rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px">
+      <label style="font-size:.65rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-low);white-space:nowrap">Gemini API Key</label>
+      <input id="geminiKeyInput" type="password" placeholder="Paste your key from aistudio.google.com" style="flex:1;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:.35rem .5rem;color:var(--text);font-size:.72rem;font-family:inherit" oninput="GEMINI_KEY=this.value.trim();document.getElementById('keyStatus').textContent=this.value.trim()?'Ready':'No key'">
+      <span id="keyStatus" style="font-size:.6rem;color:var(--text-low)">No key</span>
+    </div>
+
     <div class="drop" id="drop" onclick="document.getElementById('fileIn').click()"
       ondragover="event.preventDefault();this.classList.add('on')"
       ondragleave="this.classList.remove('on')"
@@ -430,7 +436,7 @@ body{background:var(--black);color:var(--text);font-family:'Montserrat',sans-ser
 </div>
 
 <script>
-const GEMINI_KEY='AIzaSyCQ1SR1ZEFCT6vagr_CqMYtZjul8HJGnrg';
+let GEMINI_KEY='';
 
 // ── PHYSICAL DIMENSIONS — real measurements for 8ml Nemat attar ──
 const PHYSICAL={
@@ -600,6 +606,7 @@ function handleDrop(e){e.preventDefault();document.getElementById('drop').classL
 function handleFile(e){processFile(e.target.files[0])}
 function processFile(file){
   if(!file)return;
+  if(!GEMINI_KEY){alert('Please paste your Gemini API key first (top of page).');return;}
   imgMime=file.type||'image/jpeg';
   const r=new FileReader();
   r.onload=e=>{
@@ -1284,6 +1291,7 @@ function buildLifestylePrompt(dir, note, ds){
 
 // ── GENERATE ALL — sequential: box first, then label+bottle with box reference ──────
 async function generateAll(){
+  if(!GEMINI_KEY){alert('Please paste your Gemini API key first (top of page).');return;}
   const btn=document.getElementById('genBtn');
   btn.disabled=true;
   document.getElementById('progWrap').style.display='block';
