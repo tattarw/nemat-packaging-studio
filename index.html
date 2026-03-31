@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nemat Packaging Studio v8</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500&display=swap');
+:root{--black:#07070a;--gold:#c9a84c;--gold-dim:rgba(201,168,76,.22);--gold-faint:rgba(201,168,76,.07);--surface:#101014;--surface2:#161619;--surface3:#1c1c20;--text:#eee8d8;--text-mid:rgba(238,232,216,.55);--text-low:rgba(238,232,216,.26);--border:rgba(201,168,76,.16);}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--black);color:var(--text);font-family:'Montserrat',sans-serif;font-weight:300;min-height:100vh}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:.9rem 2rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(7,7,10,.97);backdrop-filter:blur(8px);z-index:200}
+.hdr-left{display:flex;align-items:baseline;gap:1.25rem}
+.hdr-brand{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:300;letter-spacing:.38em;text-transform:uppercase;color:var(--gold)}
+.hdr-sku{font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-low);border-left:1px solid var(--border);padding-left:1.25rem;transition:color .3s}
+.hdr-sku.active{color:var(--gold)}
+.hdr-right{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.sku-pill{font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;padding:.2rem .5rem;border:1px solid var(--border);color:var(--text-low)}
+.sku-pill.done{border-color:rgba(201,168,76,.45);color:rgba(201,168,76,.7)}
+.wrap{max-width:1420px;margin:0 auto;padding:1.5rem}
+.sec{font-size:.52rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:.9rem;display:flex;align-items:center;gap:.7rem}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+.panel{background:var(--surface);border:1px solid var(--border);padding:1.4rem;margin-bottom:1.4rem}
+.drop{border:1px dashed var(--gold-dim);background:var(--surface2);padding:2.2rem 2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+.drop:hover,.drop.on{border-color:var(--gold);border-style:solid;background:var(--gold-faint)}
+.drop-icon{width:34px;height:34px;margin:0 auto .55rem;opacity:.35;color:var(--gold)}
+.drop-title{font-size:.76rem;color:var(--text-mid);margin-bottom:.2rem}
+.drop-title strong{color:var(--gold);font-weight:400}
+.drop-hint{font-size:.54rem;color:var(--text-low);letter-spacing:.1em}
+.analysis-strip{display:grid;grid-template-columns:150px 1fr;gap:1.2rem;margin-top:1.2rem}
+.a-thumb img{width:100%;max-height:240px;object-fit:contain;border:1px solid var(--border);display:block}
+.a-right{display:flex;flex-direction:column;gap:.8rem}
+.a-lbl{font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.1rem}
+.a-summary{font-size:.68rem;line-height:1.85;color:var(--text-mid);white-space:pre-wrap}
+.a-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:.38rem}
+.chip{background:var(--surface3);border:1px solid var(--border);padding:.45rem .6rem}
+.chip-l{font-size:.48rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-low);margin-bottom:.2rem}
+.chip-v{font-size:.63rem;color:var(--text);display:flex;align-items:center;gap:.3rem}
+.dot{width:9px;height:9px;flex-shrink:0;border:1px solid rgba(255,255,255,.12)}
+.gen-btn{width:100%;padding:.85rem;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Montserrat',sans-serif;font-size:.64rem;font-weight:400;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s;margin-top:.5rem}
+.gen-btn:hover:not(:disabled){background:var(--gold);color:var(--black)}
+.gen-btn:disabled{opacity:.3;cursor:not-allowed}
+.prog-wrap{margin-top:.85rem;display:none}
+.prog-stages{display:flex;border:1px solid var(--border);overflow:hidden;flex-wrap:wrap}
+.stg{flex:1;min-width:60px;padding:.38rem .15rem;text-align:center;font-size:.44rem;letter-spacing:.07em;text-transform:uppercase;color:var(--text-low);background:var(--surface2);border-right:1px solid var(--border);border-bottom:1px solid var(--border);transition:all .3s}
+.stg:last-child{border-right:none}
+.stg.on{background:var(--gold-faint);color:var(--gold)}
+.stg.done{background:rgba(201,168,76,.1);color:rgba(201,168,76,.55)}
+
+/* VARS GRID 2x2 */
+.vars-section{display:none;margin-top:1.4rem}
+.vars-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+.var-card{background:var(--surface);border:2px solid var(--border);transition:border-color .25s;position:relative}
+.var-card.selected{border-color:var(--gold)}
+.var-card.dimmed{opacity:.35;pointer-events:none}
+.var-accent-bar{height:3px}
+.var-head{padding:.7rem .95rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.var-name{font-family:'Cormorant Garamond',serif;font-size:.95rem;color:var(--gold)}
+.var-head-right{display:flex;align-items:center;gap:.5rem}
+.var-tag{font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-low);border:1px solid var(--border);padding:.14rem .35rem}
+.ver-count{font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-low);border:1px solid var(--border);padding:.14rem .35rem;background:var(--surface3)}
+.var-body{padding:.95rem}
+
+/* OUTPUTS: box flat + label flat + bottle + lifestyle — 4 columns */
+.output-trio{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.6rem;margin-bottom:.85rem}
+.output-slot{}
+.output-label{font-size:.48rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-low);margin-bottom:.3rem;display:flex;align-items:center;justify-content:space-between}
+.output-label span{color:var(--text-low)}
+.img-wrap{background:#030305;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(201,168,76,.06)}
+.img-wrap.box-frame{aspect-ratio:2/3}
+.img-wrap.label-frame{aspect-ratio:5/3}
+.img-wrap.bottle-frame{aspect-ratio:1/2}
+.img-wrap.lifestyle-frame{aspect-ratio:16/10}
+.img-wrap img{width:100%;height:100%;object-fit:contain;cursor:zoom-in}
+.gen-txt{font-size:.5rem;letter-spacing:.12em;color:var(--text-low);text-align:center;padding:1rem .5rem;line-height:2}
+.shimmer{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:sh 1.6s infinite}
+@keyframes sh{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.sel-badge{display:none;position:absolute;top:.4rem;right:.4rem;background:var(--gold);color:var(--black);font-size:.46rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .4rem;z-index:2}
+
+/* VERSION STRIP */
+.img-area{position:relative;margin-bottom:.2rem}
+.ver-strip{display:flex;gap:.35rem;margin-top:.4rem;flex-wrap:wrap;min-height:18px}
+.ver-thumb-wrap{position:relative;cursor:pointer;flex-shrink:0}
+.ver-thumb{width:28px;height:42px;object-fit:contain;border:1px solid var(--border);display:block;transition:border-color .2s;background:#030305}
+.ver-thumb.lbl{height:20px;width:36px}
+.ver-thumb.btl{height:52px;width:24px}
+.ver-thumb.lfs{height:22px;width:36px}
+.ver-thumb:hover{border-color:var(--gold)}
+.ver-thumb.current{border-color:var(--gold);border-width:2px}
+.ver-label-small{position:absolute;bottom:0;left:0;right:0;font-size:.34rem;text-align:center;background:rgba(7,7,10,.8);color:var(--text-low);pointer-events:none}
+.ver-restore{display:none;position:absolute;inset:0;background:rgba(201,168,76,.18);align-items:center;justify-content:center;font-size:.38rem;color:var(--gold);letter-spacing:.06em;text-transform:uppercase}
+.ver-thumb-wrap:hover .ver-restore{display:flex}
+.ver-add{width:28px;height:42px;border:1px dashed var(--gold-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:.8rem;color:var(--text-low);transition:border-color .2s,color .2s}
+.ver-add:hover{border-color:var(--gold);color:var(--gold)}
+
+.var-desc{font-size:.62rem;line-height:1.78;color:var(--text-mid);margin-bottom:.75rem}
+.pal-row{display:flex;align-items:center;gap:.38rem;margin-bottom:.75rem}
+.pal-swatch{width:14px;height:14px;border:1px solid rgba(255,255,255,.12);flex-shrink:0}
+.pal-label{font-size:.56rem;color:var(--text-low)}
+.spec-mini{display:flex;flex-direction:column;border:1px solid var(--border);overflow:hidden;margin-bottom:.75rem}
+.sm-row{display:flex;border-bottom:1px solid var(--border)}
+.sm-row:last-child{border-bottom:none}
+.sm-k{font-size:.48rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-low);width:64px;flex-shrink:0;padding:.34rem .5rem;padding-top:.38rem}
+.sm-v{font-size:.6rem;color:var(--text);padding:.34rem .5rem;line-height:1.42;flex:1}
+.regen-row{display:flex;gap:.4rem;margin-bottom:.45rem}
+.regen-input{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .6rem;font-family:'Montserrat',sans-serif;font-size:.6rem;font-weight:300;outline:none;transition:border-color .2s}
+.regen-input:focus{border-color:var(--gold)}
+.regen-input::placeholder{color:var(--text-low)}
+.btn-regen-go{padding:.45rem .7rem;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Montserrat',sans-serif;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
+.btn-regen-go:hover{background:var(--gold);color:var(--black)}
+.var-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.38rem}
+.btn-select{padding:.5rem;background:var(--gold);color:var(--black);border:none;font-family:'Montserrat',sans-serif;font-size:.52rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+.btn-select:hover{opacity:.82}
+.btn-select.deselect{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+.btn-save{padding:.5rem;background:transparent;color:var(--text-mid);border:1px solid var(--border);font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-save:hover,.btn-save.saved{border-color:rgba(201,168,76,.5);color:rgba(201,168,76,.7)}
+.btn-fs{padding:.5rem;background:transparent;color:var(--text-low);border:1px solid var(--border);font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-fs:hover{border-color:var(--gold);color:var(--gold)}
+.ptoggle{display:inline-block;margin-top:.45rem;font-size:.48rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-low);cursor:pointer}
+.ptoggle:hover{color:var(--gold)}
+.pbox{display:none;margin-top:.38rem;background:var(--surface3);border:1px solid var(--border);padding:.55rem;font-size:.54rem;line-height:1.7;color:var(--text-low);white-space:pre-wrap;max-height:160px;overflow-y:auto}
+.pbox.open{display:block}
+
+/* FOOTER */
+.footer-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(7,7,10,.97);border-top:1px solid var(--border);padding:.85rem 2rem;backdrop-filter:blur(8px);z-index:300;align-items:center;justify-content:space-between;gap:1rem}
+.footer-bar.on{display:flex}
+.footer-left{display:flex;flex-direction:column;gap:.2rem}
+.footer-sel{font-size:.62rem;color:var(--text-mid)}
+.footer-sel strong{color:var(--gold);font-weight:400}
+.footer-hint{font-size:.48rem;color:var(--text-low);letter-spacing:.1em}
+.footer-actions{display:flex;gap:.65rem}
+.btn-approve{padding:.6rem 1.3rem;background:var(--gold);color:var(--black);border:none;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+.btn-approve:hover{opacity:.85}
+.btn-approve:disabled{opacity:.3;cursor:not-allowed}
+.btn-next{padding:.6rem 1.3rem;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Montserrat',sans-serif;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s}
+.btn-next:hover{background:var(--gold);color:var(--black)}
+
+/* HISTORY */
+.history-panel{display:none;margin-bottom:1.4rem}
+.history-panel.on{display:block}
+.history-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.55rem}
+.history-card{background:var(--surface2);border:1px solid var(--gold-dim);padding:.45rem .65rem;display:flex;align-items:center;gap:.55rem}
+.h-thumb{width:24px;height:36px;object-fit:contain;border:1px solid var(--border);background:#030305}
+.h-info{display:flex;flex-direction:column;gap:.1rem}
+.h-name{font-size:.58rem;color:var(--text)}
+.h-dir{font-size:.5rem;color:var(--text-low)}
+
+/* BRIEF */
+.brief-panel{display:none;margin-top:1.4rem;background:var(--surface);border:1px solid var(--gold);padding:1.4rem}
+.brief-panel.on{display:block}
+.brief-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--gold);margin-bottom:.15rem}
+.brief-sub{font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-low);margin-bottom:.9rem}
+.brief-doc{background:var(--surface2);border:1px solid var(--border);padding:1.2rem;font-size:.66rem;line-height:1.9;white-space:pre-wrap;color:var(--text);max-height:320px;overflow-y:auto;margin-bottom:.8rem}
+.brief-btns{display:flex;gap:.55rem;flex-wrap:wrap}
+.btn-brief{padding:.55rem 1rem;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Montserrat',sans-serif;font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s}
+.btn-brief:hover{background:var(--gold);color:var(--black)}
+.btn-brief.primary{background:var(--gold);color:var(--black)}
+
+/* LIGHTBOX */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:.75rem}
+.lightbox.on{display:flex}
+.lightbox img{max-width:92vw;max-height:88vh;object-fit:contain;border:1px solid var(--border)}
+.lb-close{position:absolute;top:1.2rem;right:1.8rem;font-size:1.5rem;color:var(--text-low);cursor:pointer;transition:color .2s;z-index:1}
+.lb-close:hover{color:var(--gold)}
+.lb-label{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--text-low)}
+
+/* VER MODAL */
+.ver-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:400;align-items:center;justify-content:center}
+.ver-modal.on{display:flex}
+.ver-modal-box{background:var(--surface);border:1px solid var(--border);padding:1.4rem;max-width:720px;width:92%;max-height:80vh;overflow-y:auto}
+.ver-modal-title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--gold);margin-bottom:.15rem}
+.ver-modal-sub{font-size:.48rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-low);margin-bottom:1.1rem}
+.ver-modal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.65rem;margin-bottom:.9rem}
+.vmc{background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:border-color .2s}
+.vmc:hover,.vmc.cur{border-color:var(--gold)}
+.vmc-img{aspect-ratio:2/3;overflow:hidden;background:#030305}
+.vmc-img img{width:100%;height:100%;object-fit:contain}
+.vmc-info{padding:.35rem .45rem;border-top:1px solid var(--border)}
+.vmc-num{font-size:.5rem;color:var(--gold);margin-bottom:.08rem}
+.vmc-note{font-size:.44rem;color:var(--text-low);line-height:1.35}
+.ver-modal-close{width:100%;padding:.55rem;background:transparent;border:1px solid var(--border);color:var(--text-low);font-family:'Montserrat',sans-serif;font-size:.54rem;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.ver-modal-close:hover{border-color:var(--gold);color:var(--gold)}
+
+/* MANUAL OVERRIDE */
+.manual-form{grid-column:1/-1;background:var(--surface3);border:1px solid rgba(255,130,80,.25);padding:.85rem;display:flex;flex-direction:column;gap:.6rem}
+.manual-form-title{font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,150,100,.8)}
+.manual-form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+.mf-group label{display:block;font-size:.48rem;color:var(--text-low);margin-bottom:.22rem;letter-spacing:.1em;text-transform:uppercase}
+.mf-group input,.mf-group select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.45rem .6rem;font-family:'Montserrat',sans-serif;font-size:.66rem;font-weight:300;outline:none}
+.mf-apply{padding:.5rem;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Montserrat',sans-serif;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s;width:100%}
+.mf-apply:hover{background:var(--gold);color:var(--black)}
+
+@media(max-width:1200px){.output-trio{grid-template-columns:1fr 1fr}}
+@media(max-width:960px){.vars-grid,.a-chips{grid-template-columns:1fr 1fr}.analysis-strip{grid-template-columns:1fr}.output-trio{grid-template-columns:1fr 1fr}.var-actions{grid-template-columns:1fr 1fr}}
+
+/* ===== MOBILE — phones ≤ 600px ===== */
+@media(max-width:600px){
+  /* Header */
+  .hdr{padding:.6rem .8rem;flex-direction:column;align-items:flex-start;gap:.4rem}
+  .hdr-left{gap:.6rem}
+  .hdr-brand{font-size:1rem;letter-spacing:.25em}
+  .hdr-sku{font-size:.48rem;border-left:none;padding-left:0}
+  .hdr-right{gap:.3rem;justify-content:flex-start}
+  .sku-pill{font-size:.42rem;padding:.15rem .35rem}
+
+  /* Main wrap */
+  .wrap{padding:.75rem}
+  .panel{padding:.85rem}
+
+  /* Drop zone */
+  .drop{padding:1.4rem .8rem}
+  .drop-icon{width:28px;height:28px}
+  .drop-title{font-size:.68rem}
+  .drop-hint{font-size:.48rem}
+
+  /* Analysis strip */
+  .analysis-strip{grid-template-columns:1fr;gap:.8rem}
+  .a-thumb{display:flex;justify-content:center}
+  .a-thumb img{max-height:160px;width:auto}
+  .a-chips{grid-template-columns:1fr 1fr;gap:.3rem}
+  .chip{padding:.35rem .45rem}
+  .chip-l{font-size:.42rem}
+  .chip-v{font-size:.56rem}
+  .a-summary{font-size:.6rem;line-height:1.7}
+
+  /* Comments textarea */
+  .comments-field textarea{font-size:.62rem}
+
+  /* Generate button */
+  .gen-btn{font-size:.56rem;letter-spacing:.2em;padding:.7rem}
+
+  /* Progress stages */
+  .prog-stages{flex-wrap:wrap}
+  .stg{min-width:48px;padding:.28rem .1rem;font-size:.38rem}
+
+  /* Variations grid — stack single column on mobile */
+  .vars-grid{grid-template-columns:1fr;gap:.85rem}
+  .var-head{padding:.55rem .7rem}
+  .var-name{font-size:.85rem}
+  .var-body{padding:.7rem}
+
+  /* Output grid — 2 columns on mobile instead of 4 */
+  .output-trio{grid-template-columns:1fr 1fr;gap:.45rem}
+  .output-label{font-size:.42rem}
+
+  /* Regen row */
+  .regen-row{flex-direction:column}
+  .regen-input{font-size:.56rem}
+  .btn-regen-go{font-size:.46rem;padding:.4rem .55rem}
+
+  /* Variation action buttons */
+  .var-actions{grid-template-columns:1fr 1fr;gap:.3rem}
+  .btn-select,.btn-save,.btn-fs{font-size:.46rem;letter-spacing:.1em;padding:.42rem}
+
+  /* Manual override form */
+  .manual-form{padding:.65rem}
+  .manual-form-grid{grid-template-columns:1fr;gap:.4rem}
+  .mf-apply{font-size:.5rem;letter-spacing:.15em}
+
+  /* Footer bar */
+  .footer-bar{padding:.6rem .8rem;flex-direction:column;align-items:stretch;gap:.55rem}
+  .footer-sel{font-size:.56rem}
+  .footer-hint{font-size:.44rem}
+  .footer-actions{justify-content:stretch}
+  .footer-actions button{flex:1;text-align:center}
+  .btn-approve,.btn-next{font-size:.5rem;letter-spacing:.12em;padding:.5rem .6rem}
+
+  /* History */
+  .history-row{gap:.4rem}
+  .history-card{padding:.35rem .5rem;gap:.4rem}
+  .h-name{font-size:.52rem}
+  .h-dir{font-size:.44rem}
+
+  /* Brief panel */
+  .brief-panel{padding:.85rem}
+  .brief-title{font-size:.95rem}
+  .brief-doc{font-size:.58rem;line-height:1.75;padding:.8rem;max-height:250px}
+  .brief-btns{flex-direction:column}
+  .btn-brief{font-size:.48rem;text-align:center}
+
+  /* Lightbox */
+  .lightbox img{max-width:98vw;max-height:85vh}
+  .lb-close{top:.7rem;right:.7rem;font-size:1.2rem}
+  .lb-label{font-size:.5rem}
+
+  /* Version modal */
+  .ver-modal-box{padding:.85rem;width:96%}
+  .ver-modal-grid{grid-template-columns:1fr 1fr;gap:.45rem}
+  .ver-modal-title{font-size:.9rem}
+  .ver-modal-close{font-size:.48rem}
+
+  /* Spec table */
+  .spec-mini{font-size:.55rem}
+  .sm-k{width:52px;font-size:.42rem;padding:.28rem .35rem}
+  .sm-v{font-size:.54rem;padding:.28rem .35rem}
+
+  /* Palette swatches */
+  .pal-row{gap:.3rem}
+  .pal-swatch{width:12px;height:12px}
+  .pal-label{font-size:.5rem}
+
+  /* Prompt toggle */
+  .ptoggle{font-size:.44rem}
+  .pbox{font-size:.48rem;line-height:1.6;max-height:120px}
+
+  /* Model badge */
+  #modelBadge{font-size:.38rem;padding:.2rem .45rem}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-left">
+    <div><div class="hdr-brand">Nemat</div></div>
+    <div class="hdr-sku" id="hdrSku">Packaging Studio</div>
+  </div>
+  <div class="hdr-right" id="hdrHistory"></div>
+</header>
+<div id="modelBadge" style="display:none;position:fixed;bottom:0;left:0;font-size:.44rem;letter-spacing:.1em;background:rgba(7,7,10,.85);color:rgba(201,168,76,.5);padding:.25rem .65rem;z-index:400;border-top:1px solid rgba(201,168,76,.1);border-right:1px solid rgba(201,168,76,.1)"></div>
+
+<div class="wrap">
+  <div class="history-panel" id="historyPanel">
+    <div class="sec">Approved SKUs</div>
+    <div class="history-row" id="historyRow"></div>
+  </div>
+
+  <div class="panel" id="uploadPanel">
+    <div class="sec">Upload artwork</div>
+    <div class="drop" id="drop" onclick="document.getElementById('fileIn').click()"
+      ondragover="event.preventDefault();this.classList.add('on')"
+      ondragleave="this.classList.remove('on')"
+      ondrop="handleDrop(event)">
+      <svg class="drop-icon" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="1.1">
+        <rect x="2" y="6" width="30" height="22" rx="2"/>
+        <path d="M17 12v8M12 16l5-5 5 5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="drop-title"><strong>Drop or click</strong> to upload existing box artwork</div>
+      <div class="drop-hint">One SKU at a time · JPG or PNG</div>
+    </div>
+    <input type="file" id="fileIn" accept="image/*" style="display:none" onchange="handleFile(event)">
+
+    <div class="analysis-strip" id="analysisStrip" style="display:none">
+      <div class="a-thumb"><img id="aThumb" src="" alt=""></div>
+      <div class="a-right">
+        <div>
+          <div class="a-lbl">Claude Analysis</div>
+          <div class="a-summary" id="aSummary" style="color:var(--text-low);font-style:italic">Reading artwork...</div>
+        </div>
+        <div>
+          <div class="a-lbl" style="margin-bottom:.45rem">KLD Assignment</div>
+          <div class="a-chips" id="aChips"></div>
+        </div>
+        <div class="comments-field">
+          <label class="a-lbl" style="margin-bottom:.35rem">Additional Design Comments <span style="font-weight:300;color:var(--text-low);text-transform:none;letter-spacing:0;font-size:.56rem">(optional)</span></label>
+          <textarea id="userComments" class="regen-input" rows="2" placeholder="e.g. Make it more minimalist, use matte finish look, add Arabic calligraphy, go heavier on the gold..."></textarea>
+        </div>
+        <button class="gen-btn" id="genBtn" onclick="generateAll()" disabled>Generate 4 Maximalist Variations →</button>
+        <div class="prog-wrap" id="progWrap">
+          <div class="prog-stages">
+            <div class="stg" id="s0">Upload</div>
+            <div class="stg" id="s1">Analyse</div>
+            <div class="stg" id="s2">Prompts</div>
+            <div class="stg" id="s3">V1 Box</div>
+            <div class="stg" id="s4">V1 Label</div>
+            <div class="stg" id="s5">V1 Bottle</div>
+            <div class="stg" id="s6">V1 Life</div>
+            <div class="stg" id="s7">V2 Box</div>
+            <div class="stg" id="s8">V2 Label</div>
+            <div class="stg" id="s9">V2 Bottle</div>
+            <div class="stg" id="s10">V2 Life</div>
+            <div class="stg" id="s11">V3 Box</div>
+            <div class="stg" id="s12">V3 Label</div>
+            <div class="stg" id="s13">V3 Bottle</div>
+            <div class="stg" id="s14">V3 Life</div>
+            <div class="stg" id="s15">V4 Box</div>
+            <div class="stg" id="s16">V4 Label</div>
+            <div class="stg" id="s17">V4 Bottle</div>
+            <div class="stg" id="s18">V4 Life</div>
+            <div class="stg" id="s19">Done</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vars-section" id="varsSection">
+    <div class="sec">4 Variations — Box flat · Label flat · Bottle mockup · Lifestyle shot</div>
+    <div class="vars-grid" id="varsGrid"></div>
+  </div>
+
+  <div class="brief-panel" id="briefPanel">
+    <div class="brief-title">Production Brief</div>
+    <div class="brief-sub" id="briefSub">Approved</div>
+    <div class="brief-doc" id="briefDoc"></div>
+    <div class="brief-btns">
+      <button class="btn-brief primary" onclick="nextSku()">Next SKU →</button>
+      <button class="btn-brief" onclick="exportApprovalPDF()" style="border-color:#c9a84c;background:rgba(201,168,76,.1)">Export Approval PDF</button>
+      <button class="btn-brief" onclick="dlBrief()">Download .txt</button>
+      <button class="btn-brief" onclick="cpBrief()">Copy</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer-bar" id="footerBar">
+  <div class="footer-left">
+    <div class="footer-sel" id="footerText">Select a variation</div>
+    <div class="footer-hint">Click any image to fullscreen · Save versions before regenerating</div>
+  </div>
+  <div class="footer-actions">
+    <button class="btn-approve" id="approveBtn" onclick="approveSku()" disabled>Approve &amp; Generate Brief</button>
+    <button class="btn-next" onclick="exportApprovalPDF()" style="border-color:rgba(201,168,76,.6);color:rgba(201,168,76,.8)">Export PDF</button>
+    <button class="btn-next" onclick="nextSku()">Next SKU →</button>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lb-close">×</span>
+  <img id="lbImg" src="" alt="">
+  <div class="lb-label" id="lbLabel"></div>
+</div>
+
+<div class="ver-modal" id="verModal">
+  <div class="ver-modal-box">
+    <div class="ver-modal-title" id="vmTitle">Version History</div>
+    <div class="ver-modal-sub" id="vmSub"></div>
+    <div class="ver-modal-grid" id="vmGrid"></div>
+    <button class="ver-modal-close" onclick="closeVerModal()">Close</button>
+  </div>
+</div>
+
+<script>
+const GEMINI_KEY='AIzaSyCQ1SR1ZEFCT6vagr_CqMYtZjul8HJGnrg';
+
+// ── PHYSICAL DIMENSIONS — real measurements for 8ml Nemat attar ──
+const PHYSICAL={
+  box:{
+    w_mm:35, d_mm:35, h_mm:90,
+    face_w:'35mm', face_h:'90mm',
+    face_ratio:'1:2.6 (portrait, taller than 2:3)',
+    desc:'35 × 90 mm front face — a SMALL box, roughly the size of a cigarette lighter. Text must be sized to work at this physical scale.',
+    min_text:'Brand name NEMAT: minimum 5mm cap height. Scent name: minimum 3.5mm. ATTAR: minimum 2mm. Anything smaller is unreadable at 35mm width.'
+  },
+  bottle:{
+    diameter_mm:25, height_mm:70,
+    circumference_mm:78.5,
+    desc:'25mm diameter × 70mm tall cylindrical roll-on. Very small — fits in a palm.'
+  },
+  label:{
+    w_mm:72, h_mm:26,
+    overlap_mm:6,
+    desc:'72 × 26 mm flat unrolled rectangle (circumference minus 6mm overlap × 26mm visible height). Landscape, roughly 2.8:1 ratio — much WIDER than tall.',
+    min_text:'NEMAT: minimum 4mm cap height. Scent name: minimum 2.5mm. All other text: minimum 1.8mm.',
+    ratio:'2.8:1 landscape (wider than tall, like a bookmark on its side)'
+  }
+};
+
+// Model fallback chain — tries each in order until one works
+// Analysis models — ordered best to fallback. gemini-3.1-flash-preview has best vision.
+const ANALYSIS_MODELS=[
+  'gemini-3.1-flash-preview',
+  'gemini-3-flash-preview',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+];
+// Image generation models — best quality first (Nano Banana 2 = highest quality 2026)
+// gemini-3.1-flash-image-preview = Nano Banana 2 (4K, best visual fidelity, March 2026)
+// gemini-2.5-flash-image = Nano Banana (solid fallback)
+// gemini-2.0-flash-exp-image-generation = legacy fallback
+const IMAGE_GEN_MODELS=[
+  'gemini-3.1-flash-image-preview',
+  'gemini-2.5-flash-image',
+  'gemini-2.0-flash-preview-image-generation',
+  'gemini-2.0-flash-exp-image-generation',
+];
+
+let activeAnalysisModel='';
+let activeImageModel='';
+
+async function geminiGenerate(modelList, body, isImageGen=false){
+  for(const model of modelList){
+    try{
+      const url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+GEMINI_KEY;
+      const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data=await res.json();
+      if(data.error&&(data.error.code===404||data.error.code===400||data.error.code===403||
+        (data.error.message&&(data.error.message.includes('not found')||data.error.message.includes('not supported'))))){
+        console.warn('Model '+model+' not available ('+data.error.code+'): '+data.error.message);
+        continue;
+      }
+      // Success — record which model we used
+      if(isImageGen){ activeImageModel=model; updateModelBadge(); }
+      else{ activeAnalysisModel=model; updateModelBadge(); }
+      return data;
+    }catch(e){
+      console.warn('Model '+model+' error: '+e.message);
+    }
+  }
+  throw new Error('All models failed. Tried: '+modelList.join(', ')+'. Check API key at aistudio.google.com');
+}
+
+function updateModelBadge(){
+  const el=document.getElementById('modelBadge');
+  if(!el)return;
+  const parts=[];
+  if(activeAnalysisModel)parts.push('Analysis: '+activeAnalysisModel);
+  if(activeImageModel)parts.push('Image: '+activeImageModel);
+  el.textContent=parts.join(' · ');
+  el.style.display=parts.length?'block':'none';
+}
+const CLAUDE_MODEL='claude-sonnet-4-20250514';
+
+const PALETTES={
+  rose:     {id:'rose',     name:'Ruh Gulab', sub:'Rose',       gold:'#c9a84c',sec:'#9c5c5c',secL:'Dusty Rose',
+    gh:{base:'#1a0508',bl:'Deep Crimson'},mx:{base:'#0a3d35',bl:'Peacock Teal',ac:'#e8c84a'},
+    rc:{base:'#12030a',bl:'Deep Garnet'}, ch:{base:'#1f0a10',bl:'Ruby Dark'}},
+  sandal:   {id:'sandal',   name:'Attar Sandal',sub:'Sandalwood',gold:'#b8952a',sec:'#7a5c2e',secL:'Burnt Amber',
+    gh:{base:'#140e04',bl:'Warm Tobacco'},mx:{base:'#8b3a00',bl:'Burnt Saffron',ac:'#f0c040'},
+    rc:{base:'#0f0b06',bl:'Warm Espresso'},ch:{base:'#1a1000',bl:'Dark Teak'}},
+  oud:      {id:'oud',      name:'Attar Oud',  sub:'Oud',        gold:'#c4963a',sec:'#7a3a2a',secL:'Deep Copper',
+    gh:{base:'#120208',bl:'Dark Burgundy'},mx:{base:'#2d0845',bl:'Imperial Purple',ac:'#d4a840'},
+    rc:{base:'#0d0212',bl:'Midnight Plum'},ch:{base:'#180418',bl:'Deep Violet'}},
+  jasmine:  {id:'jasmine',  name:'Attar Bela', sub:'Jasmine',   gold:'#d4b96a',sec:'#e8e0cc',secL:'Ivory',
+    gh:{base:'#020f0c',bl:'Midnight Teal'},mx:{base:'#0d0d3d',bl:'Midnight Indigo',ac:'#d4c870'},
+    rc:{base:'#040c09',bl:'Forest Night'}, ch:{base:'#04100d',bl:'Deep Forest'}},
+  mukhallat:{id:'mukhallat',name:'Mukhallat',  sub:'Bouquet',   gold:'#c9a84c',sec:'#e8e0cc',secL:'Cream',
+    gh:{base:'#040f06',bl:'Forest Green'},mx:{base:'#5c0a14',bl:'Ruby Crimson',ac:'#e8b830'},
+    rc:{base:'#030c05',bl:'Deep Emerald'},ch:{base:'#040a10',bl:'Midnight Blue'}}
+};
+function detectPalette(cat){
+  const c=(cat||'').toLowerCase();
+  // Rose family
+  if(c.includes('rose')||c.includes('gulab')||c.includes('ruh')||c.includes('ward')||c.includes('gul'))return PALETTES.rose;
+  // Sandalwood family  
+  if(c.includes('sandal')||c.includes('chandan')||c.includes('santal'))return PALETTES.sandal;
+  // Oud family
+  if(c.includes('oud')||c.includes('aoud')||c.includes('agarwood')||c.includes('agar')||c.includes('dehn al')||c.includes('dahn')||c.includes(' ud ')||c.match(/\bud\b/))return PALETTES.oud;
+  // Jasmine / floral whites
+  if(c.includes('jasmine')||c.includes('yasmin')||c.includes('bela')||c.includes('mogra')||c.includes('motia')||c.includes('chameli')||c.includes('juhi')||c.includes('mallika'))return PALETTES.jasmine;
+  // Mukhallat / blends
+  if(c.includes('mukhallat')||c.includes('mukhalat')||c.includes('bouquet')||c.includes('blend')||c.includes('mixt'))return PALETTES.mukhallat;
+  // Musk family — map to mukhallat palette (deep navy)
+  if(c.includes('musk')||c.includes('misk')||c.includes('kasturi')||c.includes('white musk'))return PALETTES.mukhallat;
+  // Amber / resinous
+  if(c.includes('amber')||c.includes('ambar')||c.includes('bakhoor')||c.includes('bukhoor')||c.includes('resin'))return PALETTES.sandal;
+  // Floral generics — map to jasmine
+  if(c.includes('floral')||c.includes('flower')||c.includes('phool')||c.includes('pushp')||c.includes('hina')||c.includes('mehndi')||c.includes('kewra')||c.includes('keora')||c.includes('pandanus'))return PALETTES.jasmine;
+  // Woody / earthy — map to sandal
+  if(c.includes('woody')||c.includes('wood')||c.includes('cedar')||c.includes('vetiver')||c.includes('khus')||c.includes('khas')||c.includes('patchouli')||c.includes('loban')||c.includes('frankincense'))return PALETTES.sandal;
+  // Oriental / dark — map to oud
+  if(c.includes('oriental')||c.includes('dark')||c.includes('noir')||c.includes('black')||c.includes('royal')||c.includes('sultan')||c.includes('sheikh')||c.includes('mabsoos'))return PALETTES.oud;
+  // Citrus / fresh — map to jasmine (lighter palette)
+  if(c.includes('citrus')||c.includes('lemon')||c.includes('orange')||c.includes('lime')||c.includes('bergamot')||c.includes('fresh')||c.includes('aqua'))return PALETTES.jasmine;
+  return PALETTES.rose; // default
+}
+
+const DIRS=[
+  {id:'mughal-court',       name:'Mughal Court',       tag:'Var 01',accentColor:'#c9a84c',
+   desc:'Dark jewel base. Dense gold Mughal floral lattice as background. Painterly botanical centrepiece. Jali border. The box a Nizam household would gift.',
+   illus:'Painterly Mughal botanical, full bleed, gold on dark jewel base',
+   typo:'Trajan/Bodoni serif, classic and commanding',
+   border:'Mughal jali geometric lattice band',energy:'Dark, rich, imperial'},
+
+  {id:'rajasthani-festival', name:'Rajasthani Festival', tag:'Var 02',accentColor:'#e8c84a',
+   desc:'Bright vibrant base, fully saturated. Rajasthani block-print pattern layer. Exuberant illustrative botanical. Haveli doorframe border. The festival box.',
+   illus:'Exuberant block-print style botanical, vibrant fills, celebratory',
+   typo:'Large bold serif, festive energy, aisle-readable',
+   border:'Ornate haveli doorframe, 3-layer gold',energy:'Vibrant, festive, alive'},
+
+  {id:'deccan-sultanate',   name:'Deccan Sultanate',   tag:'Var 03',accentColor:'#d4a840',
+   desc:'Deep base with Islamic geometric tessellation as pattern layer. Botanical treated in Arabic manuscript style. Arabic calligraphy as integral design element.',
+   illus:'Botanical in Arabic manuscript style, geometric tessellation background',
+   typo:'Arabic-influenced serif, horizontal calligraphy as design element',
+   border:'Islamic geometric tessellation border — repeating 8-pointed stars',energy:'Regal, geometric, Hyderabadi'},
+
+  {id:'temple-silk',        name:'Temple Silk',        tag:'Var 04',accentColor:'#f0c040',
+   desc:'Warm deep base. Kanjivaram saree-inspired woven pattern. Botanical as temple motif — stylised like gopuram sculpture. Temple arch border. South Indian grandeur.',
+   illus:'Botanical styled as temple sculpture motif, Kanjivaram pattern background',
+   typo:'South Indian inspired serif, wide and stately',
+   border:'Temple gopuram arch border — tiered decorative crowns',energy:'Warm, sculptural, devotional'}
+];
+
+const KLD=`KEY LAYOUT DEFINITION — NEMAT ATTAR SERIES
+TOP FLAP:     NSP diamond shield — centred — gold
+FRONT FACE:   NEMAT wordmark > Hero illustration > Scent name > ATTAR
+LEFT PANEL:   MRP · net wt · manufacturer · QR code · Made in India
+RIGHT PANEL:  Arabic/Devanagari script — vertical — design element
+BOTTOM FLAP:  Concentrated Fragrance · Free From Alcohol + Arabic`;
+
+// State
+let imgB64=null,imgMime='image/jpeg',imgSrc=null;
+let analysis=null,palette=null;
+let basePrompts={};
+let currentPrompts={};
+// versions[dirIdx][type] = [{src,note,ts}]  type: box|label|bottle
+let versions=[[{},{},{},{}],[{},{},{},{}],[{},{},{},{}],[{},{},{},{}]];
+let liveImgSrc=Array(4).fill(null).map(()=>({box:null,label:null,bottle:null,lifestyle:null}));
+let selectedVar=null;
+let approvedSkus=[];
+
+function handleDrop(e){e.preventDefault();document.getElementById('drop').classList.remove('on');processFile(e.dataTransfer.files[0])}
+function handleFile(e){processFile(e.target.files[0])}
+function processFile(file){
+  if(!file)return;
+  imgMime=file.type||'image/jpeg';
+  const r=new FileReader();
+  r.onload=e=>{
+    imgB64=e.target.result.split(',')[1];imgSrc=e.target.result;
+    document.getElementById('aThumb').src=imgSrc;
+    document.getElementById('analysisStrip').style.display='grid';
+    document.getElementById('drop').classList.add('on');
+    selectedVar=null;
+    versions=Array(4).fill(null).map(()=>({box:[],label:[],bottle:[],lifestyle:[]}));
+    liveImgSrc=Array(4).fill(null).map(()=>({box:null,label:null,bottle:null,lifestyle:null}));
+    document.getElementById('approveBtn').disabled=true;
+    document.getElementById('footerBar').className='footer-bar';
+    document.getElementById('varsSection').style.display='none';
+    document.getElementById('briefPanel').className='brief-panel';
+    document.getElementById('fileIn').value='';
+    setStage(1);analyse();
+  };
+  r.readAsDataURL(file);
+}
+
+function setStage(n){for(let i=0;i<20;i++){const el=document.getElementById('s'+i);if(el)el.className=i<n?'stg done':i===n?'stg on':'stg'}}
+
+
+// Repair truncated JSON by finding last complete key-value pair and closing all open structures
+function repairTruncatedJSON(str){
+  let s=str.trimEnd();
+
+  // Step 1: Walk the string tracking state to find the last structurally complete point
+  let inStr=false,escape=false,braces=0,brackets=0;
+  let lastSafeEnd=-1; // index after last complete value (after a closing " or } or ] or digit/bool outside a string)
+
+  for(let i=0;i<s.length;i++){
+    const ch=s[i];
+    if(escape){escape=false;continue;}
+    if(ch==='\\' && inStr){escape=true;continue;}
+    if(ch==='"'){
+      inStr=!inStr;
+      if(!inStr){
+        // Just closed a string — check if next non-whitespace is , or } or ] or : (all valid continuations)
+        let j=i+1;
+        while(j<s.length && (s[j]===' '||s[j]==='\n'||s[j]==='\r'||s[j]==='\t')) j++;
+        if(j>=s.length || s[j]===','||s[j]==='}'||s[j]===']'||s[j]===':'){
+          lastSafeEnd=i+1;
+        }
+      }
+      continue;
+    }
+    if(inStr) continue;
+    if(ch==='{'){braces++;continue;}
+    if(ch==='}'){braces--;lastSafeEnd=i+1;continue;}
+    if(ch==='['){brackets++;continue;}
+    if(ch===']'){brackets--;lastSafeEnd=i+1;continue;}
+  }
+
+  // Step 2: If we ended inside a string, truncate to last safe point
+  if(inStr && lastSafeEnd>0){
+    s=s.substring(0,lastSafeEnd);
+  }
+
+  // Step 3: Clean up trailing partial content
+  s=s.trimEnd();
+  // Remove trailing comma, colon, or incomplete key
+  while(s.endsWith(',')||s.endsWith(':')||s.endsWith('"')){
+    if(s.endsWith(',')){s=s.slice(0,-1).trimEnd();continue;}
+    if(s.endsWith(':')){
+      // Remove the trailing key and colon: find the key before it
+      const ci=s.length-1;
+      let ki=s.lastIndexOf('"',ci-1);
+      if(ki>0){
+        let ki2=s.lastIndexOf('"',ki-1);
+        if(ki2>=0) s=s.substring(0,ki2).trimEnd();
+        else s=s.slice(0,-1).trimEnd();
+      } else s=s.slice(0,-1).trimEnd();
+      // Remove trailing comma left behind
+      if(s.endsWith(','))s=s.slice(0,-1).trimEnd();
+      continue;
+    }
+    break;
+  }
+
+  // Step 4: Recount braces/brackets and close
+  braces=0;brackets=0;inStr=false;escape=false;
+  for(let i=0;i<s.length;i++){
+    const ch=s[i];
+    if(escape){escape=false;continue;}
+    if(ch==='\\' && inStr){escape=true;continue;}
+    if(ch==='"'){inStr=!inStr;continue;}
+    if(inStr)continue;
+    if(ch==='{')braces++;
+    if(ch==='}')braces--;
+    if(ch==='[')brackets++;
+    if(ch===']')brackets--;
+  }
+  while(brackets>0){s+=']';brackets--;}
+  while(braces>0){s+='}';braces--;}
+  return s;
+}
+
+// ── GEMINI DEEP ANALYSIS (browser-safe, no CORS) ──
+async function analyse(){
+  const sumEl=document.getElementById('aSummary');
+  const btn=document.getElementById('genBtn');
+  sumEl.style.color='var(--text-low)';sumEl.style.fontStyle='italic';
+  sumEl.textContent='Running deep design audit...';
+  btn.disabled=true;
+
+  const prompt=`You are a senior design director and brand strategist conducting a forensic packaging audit of an Indian attar perfume box.
+
+Study this image with extreme care. Return a single raw JSON object — no markdown, no backticks, no text outside the JSON.
+
+JSON schema (fill every field with specific, detailed observations — never leave a field as "string" or vague):
+{
+  "brand": {
+    "name": "exact brand name as printed",
+    "scent_name": "EXACT scent name letter by letter — read it carefully e.g. Bela, Oud, Sandal, Ruh Gulab, Mukhallat",
+    "scent_category": "describe the scent family in plain English — e.g. rose, sandalwood, oud, jasmine, mukhallat, musk, amber, kewra, hina, vetiver, khus, mogra, chameli, bakhoor, or any other — use the actual scent name, do not force into a limited list",
+    "scent_category_detail": "e.g. floral jasmine attar — nocturnal white flowers",
+    "size_ml": "e.g. 8ml",
+    "scripts_present": ["English","Arabic","Devanagari"]
+  },
+  "typography": {
+    "brand_name_font": "describe font category, weight, style e.g. bold geometric sans, mixed case, inconsistent tracking",
+    "brand_name_size": "dominant / secondary / weak — relative to overall face",
+    "scent_name_font": "describe style e.g. ornate swash italic, script, serif",
+    "scent_name_treatment": "describe colour, size, hierarchy position on face",
+    "attar_label": "how is the ATTAR category label shown — small caps / bold / missing",
+    "arabic_script": "describe placement, calligraphic quality, size, intent — design element or regulatory label",
+    "devanagari_script": "describe placement, treatment",
+    "font_count": "how many distinct fonts visible — number",
+    "hierarchy_verdict": "describe the reading order your eye follows and whether it is intentional",
+    "typography_problems": "list specific problems e.g. 3 fonts fighting each other, scent name too small, Devanagari crammed into corner"
+  },
+  "illustration": {
+    "subject": "exactly what is depicted — e.g. cluster of pink roses with green leaves, oud burner with smoke, jasmine flowers in vase",
+    "rendering_style": "photographic-cutout|vector-clipart|painterly|botanical-lineart|digital-illustration|none",
+    "rendering_quality": "describe quality issues e.g. visible white fringe from cutout, low resolution, flat colours, drop shadow",
+    "integration": "how does illustration relate to background — floating-cutout|blended|edge-to-edge|minimal",
+    "scale_on_face": "estimate percentage of front face occupied by illustration",
+    "placement": "where on face — upper-third|centre|lower-third|full-bleed",
+    "illustration_verdict": "what specifically needs to change and why"
+  },
+  "colour": {
+    "base_colour": "specific description e.g. flat CMYK black, deep burgundy, warm ivory — not just black",
+    "base_hex_estimate": "closest hex e.g. #0a0a0a",
+    "gold_treatment": "flat CMYK simulation|warm metallic|cool metallic|absent — and quality assessment",
+    "accent_colours": "list any other colours and their usage",
+    "colour_harmony": "does the palette feel intentional — yes with critique, or no with reason",
+    "scent_colour_fit": "does the base colour suit the scent personality — e.g. black suits oud but fights jasmine"
+  },
+  "layout": {
+    "grid": "is there an underlying grid — strict|loose|none",
+    "eye_path": "where does the eye land first, second, third",
+    "negative_space": "abundant|balanced|tight|zero — and where",
+    "panel_zones": "describe how front face is divided — e.g. top third: brand name, centre: illustration bleeding into sides, bottom: scent name on white label",
+    "top_flap": "what is on the top flap — NSP shield placement, quality, proportion",
+    "back_panel": "briefly describe back/side panel organisation",
+    "clutter_score": "1-10 where 10 is maximum clutter — and what causes it"
+  },
+  "border_ornament": {
+    "border_type": "none|hairline|decorative-band|clipart-floral|geometric|multi-layer",
+    "border_quality": "describe specifically e.g. repeating digital clipart rose pattern in 4 colours, low resolution",
+    "ornament_elements": "list decorative elements beyond illustration e.g. diamond shapes, corner flourishes",
+    "ornament_verdict": "intentional-craft|generic-digital|actively-harmful-to-brand"
+  },
+  "print_readiness": {
+    "resolution_apparent": "high|medium|low — estimate based on visible detail and sharpness",
+    "gold_print_intent": "foil-stamp-intended|cmyk-simulation|unclear",
+    "dieline_visible": "yes|no — can you see cut lines or fold lines",
+    "overall_print_verdict": "would this hold at 300dpi commercial print — yes|no|uncertain with reason"
+  },
+  "market_positioning": {
+    "shelf_tier_current": "mass-market|mid-tier|premium — be honest",
+    "shelf_tier_target": "what tier is clearly intended",
+    "closest_competitor_feel": "which brand does this most resemble visually e.g. generic bazaar attar, Ajmal mid-tier, Forest Essentials",
+    "strongest_asset": "single most effective design element on the current box",
+    "most_damaging_problem": "single most damaging design mistake holding it back",
+    "redesign_priority_1": "the first and most important thing to change with specific instruction",
+    "redesign_priority_2": "second priority with specific instruction",
+    "redesign_priority_3": "third priority with specific instruction"
+  }
+}`;
+
+  // Helper: extract and parse JSON from Gemini response
+  function extractJSON(data){
+    if(data.error) throw new Error('Gemini: '+data.error.message);
+    const raw=data.candidates&&data.candidates[0]&&data.candidates[0].content&&
+              data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&
+              data.candidates[0].content.parts[0].text;
+    if(!raw) throw new Error('Empty response from Gemini');
+    const finishReason=data.candidates[0].finishReason;
+    const cleaned=raw.replace(/```json/gi,'').replace(/```/gi,'').trim();
+    const firstBrace=cleaned.indexOf('{');
+    const lastBrace=cleaned.lastIndexOf('}');
+    if(firstBrace===-1) throw new Error('No JSON found. Got: '+raw.slice(0,200));
+    const jsonStr=cleaned.slice(firstBrace, lastBrace>firstBrace ? lastBrace+1 : undefined);
+    try{ return JSON.parse(jsonStr); }catch(e){}
+    // Truncated — try repair
+    const repaired=repairTruncatedJSON(jsonStr);
+    try{ return JSON.parse(repaired); }catch(e){}
+    throw new Error('JSON parse failed (finishReason: '+(finishReason||'unknown')+'). First 200 chars: '+raw.slice(0,200));
+  }
+
+  try{
+    let parsed;
+    // Attempt 1: full detailed analysis
+    try{
+      const data=await geminiGenerate(ANALYSIS_MODELS,{
+         contents:[{parts:[
+           {inline_data:{mime_type:imgMime,data:imgB64}},
+           {text:prompt}
+         ]}],
+         generationConfig:{temperature:0.1,maxOutputTokens:8192}
+      });
+      parsed=extractJSON(data);
+    }catch(attempt1Err){
+      // Attempt 2: retry with explicit instruction to be concise and finish the JSON
+      console.warn('Analysis attempt 1 failed:',attempt1Err.message,'— retrying with shorter prompt...');
+      sumEl.textContent='First pass truncated — retrying with shorter output...';
+      const shortPrompt=prompt+'\n\nCRITICAL: Keep ALL string values under 80 characters. Be terse. Finish the entire JSON object — do not get cut off.';
+      const data2=await geminiGenerate(ANALYSIS_MODELS,{
+         contents:[{parts:[
+           {inline_data:{mime_type:imgMime,data:imgB64}},
+           {text:shortPrompt}
+         ]}],
+         generationConfig:{temperature:0.1,maxOutputTokens:8192}
+      });
+      parsed=extractJSON(data2);
+    }
+    if(!parsed.brand||!parsed.brand.scent_name||parsed.brand.scent_name.length<2)
+      throw new Error('Scent name not read. Got: "'+(parsed.brand&&parsed.brand.scent_name)+'"');
+    analysis=parsed.brand;
+    analysis.deep=parsed;
+    palette=detectPalette(analysis.scent_category);
+    renderAnalysis();
+  }catch(err){
+    sumEl.style.color='rgba(255,120,80,.85)';sumEl.style.fontStyle='normal';
+    sumEl.textContent='Analysis failed: '+err.message+'\n\nEnter details manually below.';
+    renderManualOverride();
+  }
+}
+
+function renderManualOverride(){
+  document.getElementById('aChips').innerHTML=`
+    <div class="manual-form">
+      <div class="manual-form-title">Manual Override — enter SKU details</div>
+      <div class="manual-form-grid">
+        <div class="mf-group"><label>Scent Name (as on box)</label><input id="mfScent" type="text" placeholder="e.g. Bela, Ruh Gulab, Oud"></div>
+        <div class="mf-group"><label>Category</label><input id="mfCat" type="text" placeholder="e.g. jasmine, rose, sandalwood, oud, musk, kewra, vetiver, saffron, lotus..."></div>
+        <div class="mf-group"><label>Size</label><input id="mfSize" type="text" value="8ml" placeholder="8ml"></div>
+      </div>
+      <button class="mf-apply" onclick="applyManual()">Apply &amp; Generate →</button>
+    </div>`;
+}
+
+function applyManual(){
+  const scent=(document.getElementById('mfScent').value||'').trim();
+  const cat=(document.getElementById('mfCat').value||'').trim().toLowerCase();
+  const size=(document.getElementById('mfSize').value||'8ml').trim();
+  if(!scent){alert('Enter the scent name from the box.');return;}
+  if(!cat){alert('Enter a scent category (e.g. jasmine, rose, oud).');return;}
+  const catDetail={rose:'floral rose attar',sandalwood:'woody sandalwood attar',oud:'oriental oud attar',jasmine:'floral jasmine attar',mukhallat:'multi-floral bouquet attar',musk:'musky attar',amber:'amber attar',kewra:'floral kewra attar',vetiver:'earthy vetiver attar',saffron:'precious saffron attar',lotus:'aquatic lotus attar',frangipani:'tropical frangipani attar',champa:'floral champa attar',mogra:'floral mogra attar',hina:'woody hina attar',shamama:'complex shamama attar'};
+  analysis={brand_name:'NEMAT',scent_name:scent,scent_category:cat,scent_category_detail:catDetail[cat]||cat+' attar',size_ml:size,scripts_present:['English','Arabic','Devanagari'],current_base_color:'dark background',current_illustration:'existing artwork',what_to_keep:'brand colour language, heritage feel',what_to_kill:'stock photo imagery, clipart borders, cluttered front face',shelf_gap:'reads generic from distance'};
+  palette=detectPalette(cat);
+  renderAnalysis();
+}
+
+function renderAnalysis(){
+  const sumEl=document.getElementById('aSummary');
+  const d=analysis.deep||{};
+  const mp=d.market_positioning||{};
+  const ill=d.illustration||{};
+  const typ=d.typography||{};
+  const col=d.colour||{};
+  const lay=d.layout||{};
+  const bdr=d.border_ornament||{};
+
+  sumEl.style.color='var(--text-mid)';sumEl.style.fontStyle='normal';
+  sumEl.textContent=
+    analysis.brand_name+' — '+analysis.scent_name+'  ·  '+analysis.scent_category_detail+'  ·  '+analysis.size_ml+'\n\n'+
+    'ILLUSTRATION:  '+ill.subject+' ('+ill.rendering_style+')\n'+
+    '               '+ill.rendering_verdict+'\n\n'+
+    'TYPOGRAPHY:    '+typ.typography_problems+'\n'+
+    '               Reading order: '+typ.hierarchy_verdict+'\n\n'+
+    'COLOUR:        '+col.base_colour+' · '+col.gold_treatment+'\n'+
+    '               Scent fit: '+col.scent_colour_fit+'\n\n'+
+    'LAYOUT:        Clutter '+lay.clutter_score+'/10 · '+lay.eye_path+'\n\n'+
+    'BORDER:        '+bdr.border_type+' — '+bdr.ornament_verdict+'\n\n'+
+    'MARKET:        Currently reads as '+mp.shelf_tier_current+' · Closest to: '+mp.closest_competitor_feel+'\n'+
+    '               Strongest asset: '+mp.strongest_asset+'\n'+
+    '               Most damaging: '+mp.most_damaging_problem+'\n\n'+
+    'PRIORITY 1:    '+mp.redesign_priority_1+'\n'+
+    'PRIORITY 2:    '+mp.redesign_priority_2+'\n'+
+    'PRIORITY 3:    '+mp.redesign_priority_3;
+
+  document.getElementById('hdrSku').textContent=analysis.scent_name+' · '+analysis.size_ml;
+  document.getElementById('hdrSku').className='hdr-sku active';
+
+  const chips=[
+    {l:'SKU',          v:analysis.scent_name},
+    {l:'Base (original)',v:(col.base_colour||palette.gh.bl)+' → kept', dot:col.base_hex_estimate||palette.gh.base},
+    {l:'Gold',         v:col.gold_treatment||'22k Gold', dot:palette.gold},
+    {l:'Illustration', v:ill.rendering_style||'—'},
+    {l:'Clutter',      v:(lay.clutter_score||'?')+'/10'},
+    {l:'Shelf tier',   v:mp.shelf_tier_current||'—'},
+    {l:'Scripts',      v:(analysis.scripts_present||[]).join(', ')},
+    {l:'Typography',   v:(typ.font_count||'?')+' fonts · '+((typ.hierarchy_verdict||'').slice(0,30))},
+  ];
+  document.getElementById('aChips').innerHTML=chips.map(c=>
+    '<div class="chip"><div class="chip-l">'+c.l+'</div><div class="chip-v">'+
+    (c.dot?'<div class="dot" style="background:'+c.dot+'"></div>':'')+c.v+
+    '</div></div>').join('');
+  setStage(2);
+  document.getElementById('genBtn').disabled=false;
+}
+
+// ── PROMPT BUILDERS ───────────────────────────────
+function getDirPal(dirId){
+  const p=palette;
+  // If Claude extracted the original artwork colour, honour it as the base.
+  // The direction modifies the treatment (darker/richer/more vibrant) but stays
+  // within the same colour family — preserving existing shelf recognition.
+  const origCol=analysis&&analysis.deep&&analysis.deep.colour&&analysis.deep.colour.base_hex_estimate;
+  const origDesc=analysis&&analysis.deep&&analysis.deep.colour&&analysis.deep.colour.base_colour;
+
+  // Helper: if original colour exists, use it with a description
+  // For Indian Maximalist we saturate it; for others we deepen/refine it
+  function origBase(modifier){
+    if(origCol&&origCol.length>3) return {base:origCol, bl:(origDesc||'Original colour')+modifier};
+    return null;
+  }
+
+  const orig_gh  = origBase(' — deepened, richer');
+  const orig_mx  = origBase(' — fully saturated, vibrant');
+  const orig_rc  = origBase(' — refined, deep');
+  const orig_ch  = origBase(' — textured, contemporary');
+
+  // All 4 are maximalist variations — each uses original colour with its own treatment
+  // orig_gh = dark/deep version, orig_mx = saturated/vibrant, orig_rc = warm/rich, orig_ch = textured/deep
+  return {
+    'mughal-court':       {
+      base:(orig_gh||{base:p.gh.base,bl:p.gh.bl}).base,
+      bl:(orig_gh||{base:p.gh.base,bl:p.gh.bl}).bl+' — darkened for Mughal imperial depth',
+      accent:p.gold, al:'22k Gold', accentLabel:'22k Gold'
+    },
+    'rajasthani-festival': {
+      base:(orig_mx||{base:p.mx.base,bl:p.mx.bl}).base,
+      bl:(orig_mx||{base:p.mx.base,bl:p.mx.bl}).bl+' — fully saturated, festival-bright',
+      accent:p.mx.ac||p.gold, al:'Bright Gold', accentLabel:'Bright Gold'
+    },
+    'deccan-sultanate':   {
+      base:(orig_rc||{base:p.rc.base,bl:p.rc.bl}).base,
+      bl:(orig_rc||{base:p.rc.base,bl:p.rc.bl}).bl+' — deep and regal, Hyderabadi court',
+      accent:p.gold, al:'Antique Gold', accentLabel:'Antique Gold'
+    },
+    'temple-silk':        {
+      base:(orig_ch||{base:p.ch.base,bl:p.ch.bl}).base,
+      bl:(orig_ch||{base:p.ch.base,bl:p.ch.bl}).bl+' — warm and devotional',
+      accent:p.mx.ac||p.gold, al:'Temple Gold', accentLabel:'Temple Gold'
+    },
+  }[dirId];
+}
+
+
+// ── BOTANICAL DESCRIPTOR — precise species-level visual description ──────────
+// Uses ONLY positive framing ("show ONLY X") — no negative "NOT" instructions,
+// because image gen models are unreliable with negation.
+function getBotanicalDescriptor(scent_name, scent_category){
+  const s=(scent_name||'').toLowerCase();
+  const c=(scent_category||'').toLowerCase();
+
+  // Jasmine / Bela / Mogra
+  if(c.includes('jasmine')||s.includes('bela')||s.includes('mogra')||s.includes('jasmine')){
+    return {
+      subject:'Jasminum sambac — Mogra/Bela jasmine',
+      visual:'ONLY small 5-petalled white star-shaped Mogra flowers, each bloom 1.5cm diameter, petals pure white and waxy, tight clusters of 5-12 flowers on a single spray, paired with small oval glossy dark green leaves. The flowers glow with a luminous inner light against the dark background. This is the ONLY flower species shown — every flower must be this small white star shape.',
+      identity:'The defining visual feature is SMALL STAR-SHAPED WHITE CLUSTERED flowers. Every single flower in the image must match this description. One species only.',
+      palette_note:'white flowers on dark background — flowers should glow with inner light'
+    };
+  }
+  // Rose / Ruh Gulab / Gulab
+  if(c.includes('rose')||s.includes('gulab')||s.includes('rose')){
+    return {
+      subject:'Rosa damascena — Damask rose / Gulab',
+      visual:'ONLY full-petalled Damask roses with 30-40 overlapping petals in a tight spiral formation, petals dusty rose to deep pink, each bloom 6-8cm diameter, curved thorned stems with compound serrated-edge leaves, rich velvety petal texture. This is the ONLY flower species shown — every bloom must be this large spiral rose.',
+      identity:'The defining visual feature is LARGE SPIRAL MULTI-PETALLED PINK ROSES. Every single flower in the image must be a Damask rose. One species only.',
+      palette_note:'deep pink/rose petals contrast beautifully against dark base'
+    };
+  }
+  // Oud
+  if(c.includes('oud')||s.includes('oud')||s.includes(' ud')){
+    return {
+      subject:'Aquilaria wood / oud burner',
+      visual:'ONLY a traditional brass or gold mabkhara (oud incense burner) with ornate perforated dome lid featuring geometric Islamic patterns, smoke rising in elegant curling tendrils, resting on a carved wooden stand. Show rich amber and brown Aquilaria wood grain. Smoke rendered in translucent wisps. The subject is the BURNER AND WOOD — this is a resinous wood fragrance, depicted through its traditional vessel.',
+      identity:'The defining visual feature is a GOLD MABKHARA BURNER WITH CURLING SMOKE. The entire illustration centres on this single object. No flowers.',
+      palette_note:'gold metallic burner against deep dark base with ethereal smoke'
+    };
+  }
+  // Sandal / Sandalwood
+  if(c.includes('sandal')||s.includes('sandal')){
+    return {
+      subject:'Santalum album — Indian sandalwood',
+      visual:'ONLY sandalwood heartwood: a cross-section showing rich golden-amber grain patterns, paired with small pale sandalwood chips and curled shavings, a carved sandalwood twig with small oval leaves. Warm amber and brown tones throughout. The wood grain should show rich depth and luminous layering. The subject is the WOOD ITSELF — this is a woody fragrance, depicted through its raw material.',
+      identity:'The defining visual feature is GOLDEN-AMBER WOOD GRAIN, CHIPS, AND SHAVINGS. The entire illustration centres on sandalwood material. No flowers as primary element.',
+      palette_note:'warm amber wood tones complement the aged gold palette beautifully'
+    };
+  }
+  // Mukhallat / Bouquet
+  if(c.includes('mukhallat')||s.includes('mukhallat')){
+    return {
+      subject:'Multi-floral bouquet — roses, jasmine, and exotic blooms',
+      visual:'An abundant mixed arrangement: large Damask roses (pink, 6cm), small white Mogra jasmine clusters (1.5cm stars), golden marigolds, and tropical blooms in a harmonious pyramidal composition. Flowers of varying sizes create depth. Rich pinks, whites, and golds throughout. Leaves and stems create natural flowing structure.',
+      identity:'The defining visual feature is a MIXED BOUQUET of multiple flower species (minimum 3 types clearly distinguishable). This is a blend fragrance — show diversity.',
+      palette_note:'rich mix of flower colours against dark jewel base'
+    };
+  }
+  // Generic fallback
+  return {
+    subject:`${scent_name} botanical ingredient`,
+    visual:`The primary botanical ingredient of ${scent_name} attar, rendered with high detail. Show ONLY the specific plant material this scent is made from — research the real botanical source and depict it accurately with species-level detail.`,
+    identity:'Show only the single correct botanical source for this specific attar.',
+    palette_note:'botanical illustration in gold tones against dark base'
+  };
+}
+
+
+// ── DESIGN SYSTEM BUILDER ────────────────────────
+function buildDesignSystem(dir, a){
+  const pal = getDirPal(dir.id);
+  const sec = palette.sec;
+  const secL = palette.secL;
+  const bot = getBotanicalDescriptor(a.scent_name, a.scent_category);
+  const origCol=(a.deep&&a.deep.colour&&a.deep.colour.base_hex_estimate)||null;
+  const origDesc=(a.deep&&a.deep.colour&&a.deep.colour.base_colour)||null;
+  const colourNote=origCol
+    ?'COLOUR CONTINUITY: Existing artwork uses '+origDesc+' ('+origCol+'). Stay within this colour family. Do NOT replace with an unrelated colour.'
+    :'';
+
+  const systems = {
+    'mughal-court': {
+      name:'Mughal Court',
+      background:pal.bl+' ('+pal.base+') — deep, velvety, imperial jewel tone. '+colourNote,
+      gold:'warm 22k gold ('+pal.accent+') — hot foil stamp, lustrous warm yellow-gold',
+      secondary:secL+' ('+sec+')',
+      illustration_style:'Mughal miniature painting — jewel-like precision, luminous. Gold ('+pal.accent+') linework with selective '+secL+' colour fills. Every petal rendered like an illuminated manuscript. The botanical GLOWS against the dark base.',
+      illustration_subject:bot.subject+' — '+bot.visual,
+      illustration_identity:bot.identity,
+      brand_font:'NEMAT — Trajan-style serif, wide-tracked (200+), 22k gold, dominant',
+      scent_font:a.scent_name+' — Nastaliq-inspired calligraphic italic, 22k gold, below NEMAT',
+      attar_font:'ATTAR — fine small caps, 22k gold at 60%',
+      border:'Mughal jali geometric lattice band — hexagonal or 8-pointed star tessellation, 6-8px, 22k gold',
+      pattern:'Dense gold Mughal floral lattice at 25% opacity — paisleys, lotus, arabesques in 22k gold across entire background',
+      layout:'Pattern fills background, botanical fills upper 55% bleeding edge-to-edge, jali band separator, NEMAT and scent name in lower type zone',
+      energy:'Dark, imperial, Nizam-era court — the gift box from a palace'
+    },
+    'rajasthani-festival': {
+      name:'Rajasthani Festival',
+      background:pal.bl+' ('+pal.base+') — FULLY SATURATED vibrant jewel colour. Alive, NOT muted. '+colourNote,
+      gold:'bright '+pal.accentLabel+' ('+pal.accent+') — celebratory, warm, metallic',
+      secondary:secL+' ('+sec+')',
+      illustration_style:'Indian calendar-art elevated to premium — exuberant, celebratory, confident. '+pal.accentLabel+' outlines with bold '+secL+' and natural colour fills. Large and joyful.',
+      illustration_subject:bot.subject+' — '+bot.visual,
+      illustration_identity:bot.identity,
+      brand_font:'NEMAT — large bold serif, bright gold, legible at 3 metres',
+      scent_font:a.scent_name+' — large flowing decorative script, bright gold, celebratory',
+      attar_font:'ATTAR — small caps in '+secL,
+      border:'Rajasthani haveli doorframe — 3 concentric layers: thin rule / geometric-floral band / thin rule. Corner flourishes. All bright gold.',
+      pattern:'Rajasthani block-print at 22% opacity — paisleys, lotus buds, geometric jali in bright gold across entire background',
+      layout:'Block-print texture underneath, hero botanical centre, NEMAT top, scent name bottom, ornate haveli border',
+      energy:'Vibrant, festive — Rajasthani folk art meets premium print. Pushkar mela energy.'
+    },
+    'deccan-sultanate': {
+      name:'Deccan Sultanate',
+      background:pal.bl+' ('+pal.base+') — deep, regal, Hyderabadi court. '+colourNote,
+      gold:'antique gold ('+pal.accent+') — aged, lustrous, like Golconda jewellery',
+      secondary:secL+' ('+sec+')',
+      illustration_style:'Arabic manuscript botanical — Deccan/Persian manuscript art. Fine antique gold linework, geometric fills. Arabic calligraphy INTEGRATED into the illustration as a design element.',
+      illustration_subject:bot.subject+' — '+bot.visual,
+      illustration_identity:bot.identity,
+      brand_font:'NEMAT — wide-spaced serif with Arabic-influenced proportions, antique gold',
+      scent_font:a.scent_name+' in English AND Arabic calligraphy as a paired typographic unit, antique gold',
+      attar_font:'ATTAR — Arabic "عطر" alongside English, small and elegant',
+      border:'Islamic geometric tessellation — repeating 8-pointed stars, interlocking diamonds. All antique gold. Like Hyderabad mosque tilework.',
+      pattern:'Islamic geometric tessellation at 20% opacity — 8-pointed stars, hexagons, interlocking diamonds in antique gold',
+      layout:'Geometric pattern fills background, botanical in Arabic manuscript style centre, Arabic+English type zones, tessellation border framing',
+      energy:'Regal, geometric, Hyderabadi — Charminar meets Golconda jewels'
+    },
+    'temple-silk': {
+      name:'Temple Silk',
+      background:pal.bl+' ('+pal.base+') — warm, devotional, like a temple sanctum. '+colourNote,
+      gold:'temple gold ('+pal.accent+') — the warm gold of South Indian temple sculpture',
+      secondary:secL+' ('+sec+')',
+      illustration_style:'Botanical stylised as temple sculpture — flowers and leaves carved in stone or cast in bronze, like floral motifs on a South Indian gopuram. Kanjivaram saree-inspired background pattern.',
+      illustration_subject:bot.subject+' — '+bot.visual,
+      illustration_identity:bot.identity,
+      brand_font:'NEMAT — wide, stately serif, temple-inscription quality, temple gold',
+      scent_font:a.scent_name+' — bold and devotional, warm temple gold',
+      attar_font:'ATTAR — small caps, warm gold',
+      border:'Temple gopuram border — tiered decorative arch motifs inspired by South Indian temple towers. Stacked decorative bands. Warm temple gold.',
+      pattern:'Kanjivaram saree woven pattern at 20% opacity — characteristic checks and buttas (small motifs) of Kanjivaram silk in warm gold across background',
+      layout:'Saree-pattern fills background, temple-styled botanical centre, stately typography, gopuram border framing entire face',
+      energy:'Warm, sculptural, South Indian devotional grandeur — the offering box at Tirupati'
+    }
+  };
+  const s = systems[dir.id] || systems['rajasthani-festival'];
+  s.scent_name = a.scent_name;
+  s.brand_name = a.brand_name;
+  s.size = a.size_ml;
+  return s;
+}
+
+
+function buildBoxPrompt(dir,note){
+  const a=analysis,pal=getDirPal(dir.id),sec=palette.sec,secL=palette.secL;
+  const d=a.deep||{};
+  const ill=d.illustration||{};
+  const typ=d.typography||{};
+  const col=d.colour||{};
+  const mp=d.market_positioning||{};
+  const bot=getBotanicalDescriptor(a.scent_name,a.scent_category);
+  const ds=buildDesignSystem(dir,a);
+
+  // PRIORITY TIER 1 — image gen models read the top of the prompt most reliably
+  const P1='★ PRIORITY 1 — THE IMAGE MUST SHOW EXACTLY THIS ★\n'
+    +'Physical box: '+PHYSICAL.box.desc+'\n'
+    +'Subject: '+bot.subject+'\n'
+    +'Botanical: '+bot.visual+'\n'
+    +'Identity check: '+bot.identity+'\n'
+    +'Text on box (top to bottom): "NEMAT" (largest, dominant) → botanical illustration → "'+a.scent_name+'" (secondary) → "ATTAR" (small caps)\n'
+    +'Gold: warm 22k (#c9a84c) hot-foil-stamp. Warm yellow-gold only.\n'
+    +'Background: '+ds.background+'\n'
+    +'Output: Portrait box face filling 70% of image. Light grey studio background. Box is '+PHYSICAL.box.face_w+' × '+PHYSICAL.box.face_h+' — show it at this proportion.\n';
+
+  // PRIORITY TIER 2 — design direction
+  const P2='\n★ PRIORITY 2 — DESIGN DIRECTION: '+ds.name.toUpperCase()+' ★\n'
+    +'Pattern: '+ds.pattern+'\n'
+    +'Illustration style: '+ds.illustration_style+'\n'
+    +'Border: '+ds.border+'\n'
+    +'Energy: '+ds.energy+'\n'
+    +'Typography: "NEMAT" → '+ds.brand_font+' | "'+a.scent_name+'" → '+ds.scent_font+' | "ATTAR" → '+ds.attar_font+'\n'
+    +'Minimum text sizes: '+PHYSICAL.box.min_text+'\n';
+
+  // PRIORITY TIER 3 — context and constraints
+  const P3='\n★ PRIORITY 3 — CONTEXT ★\n'
+    +'Brand: '+a.brand_name+' (170-year heritage Indian attar house)\n'
+    +'SKU: '+a.scent_name+' — '+a.scent_category_detail+' — '+a.size_ml+'\n'
+    +'Market: Indian General Trade shelf. Gold: '+ds.gold+'. Secondary: '+ds.secondary+'\n'
+    +'Show ONLY front face. No side panels, fold lines, cut marks, diagram labels, or regulatory text.\n'
+    +'ABSOLUTELY NO QR codes, barcodes, or scannable codes anywhere on the front face. QR codes belong on the side panel only — never on front.\n'
+    +'Style: Indian maximalist — dense, rich, layered, proudly Indian.\n';
+
+  // Audit context (compact)
+  const audit=(ill.subject||mp.shelf_tier_current)?
+    '\nAUDIT NOTES: Replace old '+(ill.rendering_style||'artwork')+'. Fix '+(typ.typography_problems||'hierarchy')+'. Currently reads as '+(mp.shelf_tier_current||'mass-market')+' — target premium.\n':'';
+
+  const dirRef={
+    'mughal-court':'Ref: Mughal imperial court, Lucknow nawabi. Illustration: Mughal court painter, jewel-like, luminous. Upper 55% botanical, jali separator, lower type zone.',
+    'rajasthani-festival':'Ref: Pushkar Mela, block-print textiles, haveli arches, Holi. Illustration: exuberant festival energy, calendar-art elevated to premium. Hero botanical centre.',
+    'deccan-sultanate':'Ref: Nizams of Hyderabad, Golconda, Charminar, Persian-Deccani manuscripts. Botanical in Arabic manuscript style with geometric tessellation. Arabic calligraphy as integral design element.',
+    'temple-silk':'Ref: Kanjivaram sarees, Dravidian temple gopurams, Tirupati, Madurai Meenakshi. Botanical as temple sculpture — carved stone or cast bronze. Warm devotional energy.'
+  };
+
+  return P1+P2+P3+audit
+    +'\n'+(dirRef[dir.id]||'')+'\n'
+    +(note?'\nCLIENT REVISION: '+note+'\n':'')
+    +'\nFINAL: Single photorealistic portrait box face. Light grey studio background. Gold = genuine warm metallic hot-foil-stamp. Dense, rich, layered Indian maximalism.';
+}
+
+function buildLabelPrompt(dir, note, ds){
+  const a = analysis;
+  if(!ds) ds = buildDesignSystem(dir, a);
+
+  // Priority-tiered prompt — most critical info first
+  const P1='★ PRIORITY 1 — WHAT TO GENERATE ★\n'
+    +'A FLAT UNROLLED rectangular bottle label — the sister piece to the box.\n'
+    +'Physical size: '+PHYSICAL.label.desc+'\n'
+    +'Aspect ratio: '+PHYSICAL.label.ratio+'\n'
+    +'The label fills most of the image. Clean white studio background outside the label edges.\n'
+    +'Show ONLY the flat label rectangle — no bottle, no 3D wrapping, no diagram labels.\n';
+
+  const P2='\n★ PRIORITY 2 — DESIGN (must match the box exactly) ★\n'
+    +'Direction: '+ds.name+'\n'
+    +'Background: '+ds.background+'\n'
+    +'Gold: '+ds.gold+' — use sparingly (NEMAT wordmark + border rule + botanical outlines only)\n'
+    +'Botanical: same style as box, miniaturised. '+ds.illustration_subject+'\n'
+    +'Identity check: '+ds.illustration_identity+'\n'
+    +'Typography (identical to box): "'+ds.brand_name+'" → '+ds.brand_font+' | "'+ds.scent_name+'" → '+ds.scent_font+' | "ATTAR" → '+ds.attar_font+'\n'
+    +'Minimum text sizes: '+PHYSICAL.label.min_text+'\n';
+
+  const P3='\n★ PRIORITY 3 — LABEL CONTENT (top to bottom) ★\n'
+    +'1. "'+ds.brand_name+'" — most prominent\n'
+    +'2. Small botanical motif (same species as box)\n'
+    +'3. "'+ds.scent_name+'" — secondary\n'
+    +'4. "ATTAR" — small caps\n'
+    +'5. "PERFUME OIL" + "Free From Alcohol" — very small, bottom edge\n';
+
+  const P4='\n★ PRIORITY 4 — BORDER ★\n'
+    +'ONE clean thin gold rule (1-2px), INSET 3mm from every label edge.\n'
+    +'Inset is critical — when wrapped on cylinder, edge-borders vanish into the curve.\n'
+    +'Optional: small corner ornament at each corner inside the rule.\n'
+    +'Botanical fills use secondary colour ('+ds.secondary.split('(')[0].trim()+'), keeping gold economical.\n'
+    +'Foil stamp minimum: 0.3mm gaps between gold elements.\n';
+
+  return P1+P2+P3+P4
+    +(note?'\nCLIENT REVISION: '+note+'\n':'')
+    +'\nFINAL: Flat unrolled label. Landscape '+PHYSICAL.label.ratio+'. White background outside. Gold = warm metallic hot-foil. Must look like the exact same product family as the box.';
+}
+
+function buildBottlePrompt(dir, note, ds){
+  const a = analysis;
+  if(!ds) ds = buildDesignSystem(dir, a);
+
+  const P1='★ PRIORITY 1 — WHAT TO GENERATE ★\n'
+    +'A photorealistic product shot of a small roll-on perfume bottle.\n'
+    +'Bottle: '+PHYSICAL.bottle.desc+'\n'
+    +'Applicator: silver metal roll-on ball at top — smooth sphere (the ONLY type of applicator — no spray pump, no cap).\n'
+    +'Glass: clear borosilicate, slight warm tint. Golden-amber attar oil visible inside.\n'
+    +'Label on bottle: '+PHYSICAL.label.w_mm+'mm × '+PHYSICAL.label.h_mm+'mm wrapped around centre of bottle.\n'
+    +'The label design matches the box EXACTLY — same fonts, colours, illustration, gold.\n';
+
+  const P2='\n★ PRIORITY 2 — LABEL DESIGN ON BOTTLE ★\n'
+    +'Direction: '+ds.name+'\n'
+    +'Label background: '+ds.background+'\n'
+    +'Gold on label: '+ds.gold+'\n'
+    +'Label text: "'+ds.brand_name+'" (largest) → "'+ds.scent_name+'" → "ATTAR"\n'
+    +'Botanical on label: miniature version of box illustration, same species: '+ds.illustration_subject+'\n'
+    +'Identity check: '+ds.illustration_identity+'\n'
+    +'Label border: thin gold rule inset from edges, ALL FOUR SIDES fully visible on the bottle.\n'
+    +'Clear glass visible above and below label — the label is a distinct rectangle, not edge-to-edge.\n';
+
+  const P3='\n★ PRIORITY 3 — PHOTOGRAPHY ★\n'
+    +'Single bottle, upright, rotated 15-20° to show label.\n'
+    +'Bottle fills 70-80% of image height, vertically centred.\n'
+    +'Soft directional studio light from upper-left catching gold elements.\n'
+    +'Background: neutral light grey gradient. Subtle soft shadow beneath.\n'
+    +'Premium e-commerce / product catalogue quality.\n'
+    +'Portrait orientation.\n';
+
+  return P1+P2+P3
+    +(note?'\nCLIENT REVISION: '+note+'\n':'')
+    +'\nFINAL: One bottle only. Portrait. Label border fully visible on all four sides. Gold = warm metallic hot-foil. Must match the box design exactly.';
+}
+
+// ── LIFESTYLE SHOT PROMPT ────────────────────────
+function buildLifestylePrompt(dir, note, ds){
+  const a = analysis;
+  if(!ds) ds = buildDesignSystem(dir, a);
+  const bot = getBotanicalDescriptor(a.scent_name, a.scent_category);
+
+  // Scent-appropriate styling props
+  const sceneProps = {
+    'rose':      'scattered dried rose petals, a small brass dish, a folded silk dupatta in dusty pink',
+    'jasmine':   'a sprig of fresh jasmine on a brass plate, a folded white cotton cloth, a small clay diya lamp',
+    'sandal':    'sandalwood chips on a carved wooden tray, a small brass bowl, warm amber fabric',
+    'oud':       'a small brass mabkhara with a wisp of smoke, dark wood surface, a velvet pouch in deep burgundy',
+    'mukhallat': 'mixed dried flowers on a brass thali, a silk scarf in jewel tones, a small ornate mirror',
+  };
+  const cat = (a.scent_category||'').toLowerCase();
+  let props = sceneProps['mukhallat']; // default
+  for(const [k,v] of Object.entries(sceneProps)){ if(cat.includes(k)){props=v;break;} }
+
+  return '★ PRIORITY 1 — WHAT TO GENERATE ★\n'
+    +'A lifestyle product photograph showing the box AND bottle together in a styled setting.\n'
+    +'The box ('+PHYSICAL.box.face_w+' × '+PHYSICAL.box.face_h+') stands upright, slightly behind.\n'
+    +'The bottle ('+PHYSICAL.bottle.diameter_mm+'mm × '+PHYSICAL.bottle.height_mm+'mm roll-on) stands in front, angled to show label.\n'
+    +'Both display the '+ds.name+' design direction — same gold, same background colour, same illustration.\n\n'
+    +'★ PRIORITY 2 — SCENE STYLING ★\n'
+    +'Surface: a warm-toned natural material — aged wood, marble, or textured stone.\n'
+    +'Props (positioned naturally around the products): '+props+'.\n'
+    +'Background: softly blurred warm interior — suggests a dressing table or a beautiful shelf.\n'
+    +'Depth of field: products sharp, background and props softly blurred (f/2.8 look).\n'
+    +'Lighting: warm golden-hour directional light from one side, catching the gold foil elements.\n'
+    +'Mood: intimate, luxurious, Indian heritage — like a lifestyle editorial in Vogue India.\n\n'
+    +'★ PRIORITY 3 — PRODUCT DETAILS ★\n'
+    +'Box design: '+ds.background+'. Gold: '+ds.gold+'. Border: '+ds.border+'\n'
+    +'Bottle label: matches box exactly. Silver roll-on ball. Golden-amber oil visible in glass.\n'
+    +'Botanical: '+bot.subject+' — '+bot.identity+'\n'
+    +'Text on both: "'+ds.brand_name+'" (dominant) → "'+ds.scent_name+'" → "ATTAR"\n\n'
+    +(note?'CLIENT REVISION: '+note+'\n':'')
+    +'No QR codes, barcodes, or scannable codes visible anywhere on the box front face or bottle label.\n'
+    +'FINAL: Landscape photograph (16:10 ratio). Products are hero but scene tells a story. Premium lifestyle editorial quality. Warm, inviting, Indian.';
+}
+
+// ── GENERATE ALL — sequential: box first, then label+bottle with box reference ──────
+async function generateAll(){
+  const btn=document.getElementById('genBtn');
+  btn.disabled=true;
+  document.getElementById('progWrap').style.display='block';
+  setStage(3);
+
+  // Build design systems once per direction — shared across all three prompts
+  const designSystems={};
+  DIRS.forEach(d=>{
+    designSystems[d.id]=buildDesignSystem(d,analysis);
+  });
+
+  // Read user comments (optional global direction)
+  const userNote=(document.getElementById('userComments').value||'').trim();
+
+  // Build prompts — label, bottle, lifestyle share the design system with box
+  DIRS.forEach(d=>{
+    const ds=designSystems[d.id];
+    basePrompts[d.id]={
+      box:buildBoxPrompt(d,userNote),
+      label:buildLabelPrompt(d,userNote,ds),
+      bottle:buildBottlePrompt(d,userNote,ds),
+      lifestyle:buildLifestylePrompt(d,userNote,ds)
+    };
+    currentPrompts[d.id]={...basePrompts[d.id]};
+  });
+
+  buildVarsUI();
+  document.getElementById('varsSection').style.display='block';
+  document.getElementById('varsSection').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('footerBar').className='footer-bar on';
+  document.getElementById('footerText').textContent='Step 1: Generating box concepts...';
+
+  // PHASE 1 — Generate all 4 boxes in parallel first
+  setStage(3);
+  await Promise.all(DIRS.map((d,di)=>genOne(di,'box',currentPrompts[d.id].box,3+di*4)));
+
+  // PHASE 2 — Generate labels with box image as reference
+  document.getElementById('footerText').textContent='Step 2: Generating labels (matched to box)...';
+  await Promise.all(DIRS.map((d,di)=>genOneWithBoxRef(di,'label',currentPrompts[d.id].label,4+di*4)));
+
+  // PHASE 3 — Generate bottles with box image as reference
+  document.getElementById('footerText').textContent='Step 3: Generating bottle mockups (matched to box)...';
+  await Promise.all(DIRS.map((d,di)=>genOneWithBoxRef(di,'bottle',currentPrompts[d.id].bottle,5+di*4)));
+
+  // PHASE 4 — Generate lifestyle shots with box+bottle as reference
+  document.getElementById('footerText').textContent='Step 4: Generating lifestyle shots...';
+  await Promise.all(DIRS.map((d,di)=>genLifestyle(di,currentPrompts[d.id].lifestyle,6+di*4)));
+
+  setStage(19);
+  document.getElementById('footerText').textContent='Select a variation to approve';
+  btn.disabled=false;
+}
+
+async function genOne(dirIdx,type,prompt,stageNum){
+  const frame=document.getElementById('frame-'+dirIdx+'-'+type);
+  if(!frame)return;
+  const dotEl=document.getElementById('dot-'+dirIdx+'-'+type);
+  let dc=0;
+  const di=setInterval(()=>{dc=(dc+1)%4;if(dotEl)dotEl.textContent='.'.repeat(dc+1);},500);
+  setStage(stageNum);
+
+  try{
+    const parts=[{text:prompt}];
+    if(imgB64)parts.unshift({inline_data:{mime_type:imgMime,data:imgB64}});
+    const data=await geminiGenerate(IMAGE_GEN_MODELS,{
+      contents:[{parts}],
+      generationConfig:{responseModalities:['TEXT','IMAGE']}
+    },true);
+    clearInterval(di);
+    if(data.candidates?.[0]?.content?.parts){
+      const ip=data.candidates[0].content.parts.find(p=>p.inlineData);
+      if(ip){
+        const src='data:'+ip.inlineData.mimeType+';base64,'+ip.inlineData.data;
+        liveImgSrc[dirIdx][type]=src;
+        frame.innerHTML='<img src="'+src+'" alt="'+type+'" onclick="openLightbox('+dirIdx+',\''+type+'\')">';
+        updateVerStrip(dirIdx,type);
+        return;
+      }
+      const tp=data.candidates[0].content.parts.find(p=>p.text);
+      frame.innerHTML='<div class="gen-txt" style="color:rgba(201,168,76,.35)">'+(tp&&tp.text?tp.text.slice(0,200):'No image returned')+'</div>';
+    }else{
+      frame.innerHTML='<div class="gen-txt" style="color:rgba(255,80,60,.4)">API error: '+((data.error&&data.error.message)||'unknown').slice(0,150)+'</div>';
+    }
+  }catch(err){
+    clearInterval(di);
+    frame.innerHTML='<div class="gen-txt" style="color:rgba(255,80,60,.4)">Error: '+err.message+'</div>';
+  }
+}
+
+// genOneWithBoxRef — sends box image (and label image for bottle) as visual reference
+async function genOneWithBoxRef(dirIdx,type,prompt,stageNum){
+  const frame=document.getElementById('frame-'+dirIdx+'-'+type);
+  if(!frame)return;
+  const dotEl=document.getElementById('dot-'+dirIdx+'-'+type);
+  let dc=0;
+  const di=setInterval(()=>{dc=(dc+1)%4;if(dotEl)dotEl.textContent='.'.repeat(dc+1);},500);
+  setStage(stageNum);
+
+  const boxSrc=liveImgSrc[dirIdx]&&liveImgSrc[dirIdx].box;
+  const labelSrc=liveImgSrc[dirIdx]&&liveImgSrc[dirIdx].label;
+
+  try{
+    const parts=[{text:prompt}];
+
+    // Build a compact colour anchor from the design system
+    const d=DIRS[dirIdx];
+    const dp=getDirPal(d.id);
+    const colourAnchor=dp?'\nCOLOUR LOCK: Background='+dp.base+' ('+dp.bl+'), Gold='+dp.accent+' ('+dp.al+'). Match these hex values exactly.':'';
+
+    if(type==='bottle'&&labelSrc){
+      // For bottle: show the flat label image first — Gemini must reproduce it exactly on the bottle
+      const lB64=labelSrc.split(',')[1];
+      const lMime=labelSrc.split(';')[0].split(':')[1]||'image/png';
+      parts.unshift({text:'VISUAL REFERENCE — THIS IS THE EXACT FLAT LABEL THAT MUST APPEAR ON THE BOTTLE:\nWrap THIS label around the bottle. Reproduce it exactly — same fonts, same border (all four sides fully visible), same illustration, same colours, same gold treatment. The border must be fully visible when wrapped on the cylinder.'+colourAnchor});
+      parts.unshift({inline_data:{mime_type:lMime,data:lB64}});
+    } else if(boxSrc){
+      // For label: show the box as visual reference
+      const boxB64=boxSrc.split(',')[1];
+      const boxMime=boxSrc.split(';')[0].split(':')[1]||'image/png';
+      parts.unshift({text:'VISUAL REFERENCE — THIS IS THE BOX DESIGN YOU MUST MATCH:\nThe label must have the EXACT SAME visual style, fonts, colours, illustration technique, border system, and gold treatment as this box.'+colourAnchor});
+      parts.unshift({inline_data:{mime_type:boxMime,data:boxB64}});
+    }
+
+    // Also include original artwork reference
+    if(imgB64)parts.push({inline_data:{mime_type:imgMime,data:imgB64}});
+
+    const data=await geminiGenerate(IMAGE_GEN_MODELS,{
+      contents:[{parts}],
+      generationConfig:{responseModalities:['TEXT','IMAGE']}
+    },true);
+    clearInterval(di);
+    if(data.candidates?.[0]?.content?.parts){
+      const ip=data.candidates[0].content.parts.find(p=>p.inlineData);
+      if(ip){
+        const src='data:'+ip.inlineData.mimeType+';base64,'+ip.inlineData.data;
+        liveImgSrc[dirIdx][type]=src;
+        frame.innerHTML='<img src="'+src+'" alt="'+type+'" onclick="openLightbox('+dirIdx+',\''+type+'\')">';
+        updateVerStrip(dirIdx,type);
+        return;
+      }
+      const tp=data.candidates[0].content.parts.find(p=>p.text);
+      frame.innerHTML='<div class="gen-txt" style="color:rgba(201,168,76,.35)">'+(tp&&tp.text?tp.text.slice(0,200):'No image returned')+'</div>';
+    }else{
+      frame.innerHTML='<div class="gen-txt" style="color:rgba(255,80,60,.4)">API error: '+((data.error&&data.error.message)||'unknown').slice(0,150)+'</div>';
+    }
+  }catch(err){
+    clearInterval(di);
+    frame.innerHTML='<div class="gen-txt" style="color:rgba(255,80,60,.4)">Error: '+err.message+'</div>';
+  }
+}
+
+
+// ── LIFESTYLE GENERATION — uses box + bottle images as visual reference ──
+async function genLifestyle(dirIdx,prompt,stageNum){
+  const frame=document.getElementById('frame-'+dirIdx+'-lifestyle');
+  if(!frame)return;
+  const dotEl=document.getElementById('dot-'+dirIdx+'-lifestyle');
+  let dc=0;
+  const di=setInterval(()=>{dc=(dc+1)%4;if(dotEl)dotEl.textContent='.'.repeat(dc+1);},500);
+  setStage(stageNum);
+
+  const boxSrc=liveImgSrc[dirIdx]&&liveImgSrc[dirIdx].box;
+  const bottleSrc=liveImgSrc[dirIdx]&&liveImgSrc[dirIdx].bottle;
+
+  try{
+    const parts=[{text:prompt}];
+    // Pass both box and bottle as visual reference for consistency
+    if(boxSrc){
+      const bB64=boxSrc.split(',')[1];
+      const bMime=boxSrc.split(';')[0].split(':')[1]||'image/png';
+      parts.unshift({text:'VISUAL REFERENCE — THIS IS THE BOX DESIGN. The box in the lifestyle shot must look exactly like this:'});
+      parts.unshift({inline_data:{mime_type:bMime,data:bB64}});
+    }
+    if(bottleSrc){
+      const btB64=bottleSrc.split(',')[1];
+      const btMime=bottleSrc.split(';')[0].split(':')[1]||'image/png';
+      parts.push({inline_data:{mime_type:btMime,data:btB64}});
+      parts.push({text:'VISUAL REFERENCE — THIS IS THE BOTTLE. The bottle in the lifestyle shot must look exactly like this.'});
+    }
+
+    const data=await geminiGenerate(IMAGE_GEN_MODELS,{
+      contents:[{parts}],
+      generationConfig:{responseModalities:['TEXT','IMAGE']}
+    },true);
+    clearInterval(di);
+    if(data.candidates?.[0]?.content?.parts){
+      const ip=data.candidates[0].content.parts.find(p=>p.inlineData);
+      if(ip){
+        const src='data:'+ip.inlineData.mimeType+';base64,'+ip.inlineData.data;
+        liveImgSrc[dirIdx].lifestyle=src;
+        frame.innerHTML='<img src="'+src+'" alt="lifestyle" onclick="openLightbox('+dirIdx+',\'lifestyle\')">';
+        updateVerStrip(dirIdx,'lifestyle');
+        return;
+      }
+      const tp=data.candidates[0].content.parts.find(p=>p.text);
+      frame.innerHTML='<div class="gen-txt" style="color:rgba(201,168,76,.35)">'+(tp&&tp.text?tp.text.slice(0,200):'No image returned')+'</div>';
+    }else{
+      frame.innerHTML='<div class="gen-txt" style="color:rgba(255,80,60,.4)">API error: '+((data.error&&data.error.message)||'unknown').slice(0,150)+'</div>';
+    }
+  }catch(err){
+    clearInterval(di);
+    frame.innerHTML='<div class="gen-txt" style="color:rgba(255,80,60,.4)">Error: '+err.message+'</div>';
+  }
+}
+
+// ── VERSION MANAGEMENT ────────────────────────────
+function saveVersion(di,type){
+  const src=liveImgSrc[di][type];
+  if(!src){alert('Nothing generated yet.');return;}
+  const note=document.getElementById('regenNote-'+di).value||'';
+  const v=versions[di][type];
+  v.push({src,note:note||'v'+(v.length+1),ts:new Date().toLocaleTimeString()});
+  updateVerStrip(di,type);
+  const btn=document.getElementById('vsave-'+di);
+  if(btn){btn.textContent='Saved';btn.className='btn-save saved';setTimeout(()=>{btn.textContent='Save';btn.className='btn-save';},2000);}
+  updateVerCount(di);
+}
+
+function updateVerStrip(di,type){
+  const strip=document.getElementById('vstrip-'+di+'-'+type);
+  if(!strip)return;
+  const v=versions[di][type];
+  const cls=type==='label'?'lbl':type==='bottle'?'btl':type==='lifestyle'?'lfs':'';
+  let html=v.map((ver,vi)=>'<div class="ver-thumb-wrap" onclick="restoreVer('+di+',\''+type+'\','+vi+')" title="'+ver.note+' · '+ver.ts+'"><img class="ver-thumb '+cls+' '+(vi===v.length-1?'current':'')+'" src="'+ver.src+'"><div class="ver-label-small">v'+(vi+1)+'</div><div class="ver-restore">Use</div></div>').join('');
+  if(v.length>=2)html+='<div class="ver-add" onclick="openVerModal('+di+',\''+type+'\')" title="All versions">···</div>';
+  strip.innerHTML=html;
+}
+
+function updateVerCount(di){
+  const el=document.getElementById('verCount-'+di);
+  if(!el)return;
+  const total=['box','label','bottle','lifestyle'].reduce((s,t)=>s+versions[di][t].length,0);
+  el.textContent=total>0?total+' saved':'';
+}
+
+function restoreVer(di,type,vi){
+  const v=versions[di][type][vi];
+  if(!v)return;
+  liveImgSrc[di][type]=v.src;
+  const frame=document.getElementById('frame-'+di+'-'+type);
+  frame.innerHTML='<img src="'+v.src+'" onclick="openLightbox('+di+',\''+type+'\')">';
+  updateVerStrip(di,type);
+}
+
+function openVerModal(di,type){
+  const v=versions[di][type];
+  document.getElementById('vmTitle').textContent=DIRS[di].name+' — '+type.charAt(0).toUpperCase()+type.slice(1)+' History';
+  document.getElementById('vmSub').textContent=v.length+' version'+(v.length!==1?'s':'');
+  document.getElementById('vmGrid').innerHTML=v.map((ver,vi)=>'<div class="vmc '+(vi===v.length-1?'cur':'')+'" onclick="restoreVer('+di+',\''+type+'\','+vi+');closeVerModal()"><div class="vmc-img"><img src="'+ver.src+'"></div><div class="vmc-info"><div class="vmc-num">v'+(vi+1)+'</div><div class="vmc-note">'+ver.note+'<br>'+ver.ts+'</div></div></div>').join('');
+  document.getElementById('verModal').className='ver-modal on';
+}
+function closeVerModal(){document.getElementById('verModal').className='ver-modal';}
+
+// ── BUILD VARS UI ─────────────────────────────────
+function buildVarsUI(){
+  const grid=document.getElementById('varsGrid');
+  grid.innerHTML='';
+  const palMap={
+    'mughal-court':       {base:palette.gh.base,accent:palette.gold,bl:palette.gh.bl},
+    'rajasthani-festival':{base:palette.mx.base,accent:palette.mx.ac||palette.gold,bl:palette.mx.bl},
+    'deccan-sultanate':   {base:palette.rc.base,accent:palette.gold,bl:palette.rc.bl},
+    'temple-silk':        {base:palette.ch.base,accent:palette.mx.ac||palette.gold,bl:palette.ch.bl},
+  };
+
+  DIRS.forEach((d,i)=>{
+    const pal=palMap[d.id];
+    const card=document.createElement('div');
+    card.className='var-card';card.id='vcard-'+i;
+    card.innerHTML=
+      '<div class="var-accent-bar" style="background:linear-gradient(90deg,'+pal.base+','+pal.accent+'70)"></div>'+
+      '<div class="sel-badge" id="vbadge-'+i+'">Selected</div>'+
+      '<div class="var-head">'+
+        '<div class="var-name">'+d.name+'</div>'+
+        '<div class="var-head-right">'+
+          '<div class="ver-count" id="verCount-'+i+'"></div>'+
+          '<div class="var-tag" style="color:'+pal.accent+';border-color:'+pal.accent+'40">'+d.tag+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="var-body">'+
+        // THREE OUTPUT SLOTS
+        '<div class="output-trio">'+
+          // BOX
+          '<div class="output-slot">'+
+            '<div class="output-label">Box flat <span>front face</span></div>'+
+            '<div class="img-area">'+
+              '<div class="img-wrap box-frame" id="frame-'+i+'-box">'+
+                '<div class="gen-txt">Generating<span id="dot-'+i+'-box">...</span></div><div class="shimmer"></div>'+
+              '</div>'+
+              '<div class="ver-strip" id="vstrip-'+i+'-box"></div>'+
+            '</div>'+
+          '</div>'+
+          // LABEL
+          '<div class="output-slot">'+
+            '<div class="output-label">Label flat <span>bottle wrap</span></div>'+
+            '<div class="img-area">'+
+              '<div class="img-wrap label-frame" id="frame-'+i+'-label">'+
+                '<div class="gen-txt">Generating<span id="dot-'+i+'-label">...</span></div><div class="shimmer"></div>'+
+              '</div>'+
+              '<div class="ver-strip" id="vstrip-'+i+'-label"></div>'+
+            '</div>'+
+          '</div>'+
+          // BOTTLE
+          '<div class="output-slot">'+
+            '<div class="output-label">Bottle mockup <span>product render</span></div>'+
+            '<div class="img-area">'+
+              '<div class="img-wrap bottle-frame" id="frame-'+i+'-bottle">'+
+                '<div class="gen-txt">Generating<span id="dot-'+i+'-bottle">...</span></div><div class="shimmer"></div>'+
+              '</div>'+
+              '<div class="ver-strip" id="vstrip-'+i+'-bottle"></div>'+
+            '</div>'+
+          '</div>'+
+          // LIFESTYLE
+          '<div class="output-slot">'+
+            '<div class="output-label">Lifestyle shot <span>editorial</span></div>'+
+            '<div class="img-area">'+
+              '<div class="img-wrap lifestyle-frame" id="frame-'+i+'-lifestyle">'+
+                '<div class="gen-txt">Generating<span id="dot-'+i+'-lifestyle">...</span></div><div class="shimmer"></div>'+
+              '</div>'+
+              '<div class="ver-strip" id="vstrip-'+i+'-lifestyle"></div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="pal-row">'+
+          '<div class="pal-swatch" style="background:'+pal.base+'"></div>'+
+          '<div class="pal-swatch" style="background:'+pal.accent+'"></div>'+
+          '<div class="pal-label">'+pal.bl+' · 22k Gold</div>'+
+        '</div>'+
+        '<p class="var-desc">'+d.desc+'</p>'+
+        '<div class="spec-mini">'+
+          '<div class="sm-row"><div class="sm-k">Illus</div><div class="sm-v">'+d.illus+'</div></div>'+
+          '<div class="sm-row"><div class="sm-k">Type</div><div class="sm-v">'+d.typo+'</div></div>'+
+          '<div class="sm-row"><div class="sm-k">Border</div><div class="sm-v">'+d.border+'</div></div>'+
+        '</div>'+
+        '<div class="regen-row">'+
+          '<input class="regen-input" id="regenNote-'+i+'" type="text" placeholder="Describe changes and regenerate all 3 artworks...">'+
+          '<button class="btn-regen-go" onclick="regenAll('+i+')">Regen All →</button>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.38rem;margin-top:.38rem;margin-bottom:.38rem">'+
+          '<button class="btn-regen-go" style="font-size:.46rem" onclick="regenSingle('+i+',\'box\')">Regen Box</button>'+
+          '<button class="btn-regen-go" style="font-size:.46rem" onclick="regenSingle('+i+',\'label\')">Regen Label</button>'+
+          '<button class="btn-regen-go" style="font-size:.46rem" onclick="regenSingle('+i+',\'bottle\')">Regen Bottle</button>'+
+          '<button class="btn-regen-go" style="font-size:.46rem" onclick="regenSingle('+i+',\'lifestyle\')">Regen Life</button>'+
+        '</div>'+
+        '<div class="var-actions">'+
+          '<button class="btn-select" id="vbtn-'+i+'" onclick="selectVar('+i+')">Select</button>'+
+          '<button class="btn-save" id="vsave-'+i+'" onclick="saveAllVer('+i+')">Save All</button>'+
+          '<button class="btn-fs" onclick="openLightbox('+i+',\'box\')">Fullscreen</button>'+
+        '</div>'+
+        '<span class="ptoggle" onclick="document.getElementById(\'pb-'+i+'\').classList.toggle(\'open\')">View prompts ↓</span>'+
+        '<div class="pbox" id="pb-'+i+'"></div>'+
+      '</div>';
+    grid.appendChild(card);
+    setTimeout(()=>{
+      const pb=document.getElementById('pb-'+i);
+      if(pb&&currentPrompts[d.id])pb.textContent='=== BOX ===\n'+currentPrompts[d.id].box+'\n\n=== LABEL ===\n'+currentPrompts[d.id].label+'\n\n=== BOTTLE ===\n'+currentPrompts[d.id].bottle+'\n\n=== LIFESTYLE ===\n'+currentPrompts[d.id].lifestyle;
+    },50);
+  });
+}
+
+function saveAllVer(di){['box','label','bottle','lifestyle'].forEach(t=>saveVersion(di,t));}
+
+async function regenAll(di){
+  try{
+    const note=document.getElementById('regenNote-'+di).value||'';
+    const d=DIRS[di];
+    const ds=buildDesignSystem(d,analysis);
+    // Also pick up global user comments if present
+    const globalNote=(document.getElementById('userComments')?document.getElementById('userComments').value:'').trim();
+    const combinedNote=[globalNote,note].filter(Boolean).join('. ');
+    currentPrompts[d.id]={
+      box:buildBoxPrompt(d,combinedNote),
+      label:buildLabelPrompt(d,combinedNote,ds),
+      bottle:buildBottlePrompt(d,combinedNote,ds),
+      lifestyle:buildLifestylePrompt(d,combinedNote,ds)
+    };
+    const pb=document.getElementById('pb-'+di);
+    if(pb)pb.textContent='=== BOX ===\n'+currentPrompts[d.id].box+'\n\n=== LABEL ===\n'+currentPrompts[d.id].label+'\n\n=== BOTTLE ===\n'+currentPrompts[d.id].bottle+'\n\n=== LIFESTYLE ===\n'+currentPrompts[d.id].lifestyle;
+    if(selectedVar===di)clearSelection();
+    // Show progress
+    document.getElementById('progWrap').style.display='block';
+    document.getElementById('footerText').textContent='Regenerating '+d.name+'...';
+    // Sequential: box first, then label+bottle, then lifestyle
+    await genOne(di,'box',currentPrompts[d.id].box,3+di*4);
+    await Promise.all([
+      genOneWithBoxRef(di,'label',currentPrompts[d.id].label,4+di*4),
+      genOneWithBoxRef(di,'bottle',currentPrompts[d.id].bottle,5+di*4)
+    ]);
+    await genLifestyle(di,currentPrompts[d.id].lifestyle,6+di*4);
+    document.getElementById('footerText').textContent='Regen complete — '+d.name;
+  }catch(err){
+    console.error('regenAll error:',err);
+    alert('Regen failed: '+err.message);
+  }
+}
+
+async function regenSingle(di,type){
+  try{
+    const note=document.getElementById('regenNote-'+di).value||'';
+    const d=DIRS[di];
+    const ds=buildDesignSystem(d,analysis);
+    const globalNote=(document.getElementById('userComments')?document.getElementById('userComments').value:'').trim();
+    const combinedNote=[globalNote,note].filter(Boolean).join('. ');
+    let newPrompt;
+    if(type==='box') newPrompt=buildBoxPrompt(d,combinedNote);
+    else if(type==='label') newPrompt=buildLabelPrompt(d,combinedNote,ds);
+    else if(type==='bottle') newPrompt=buildBottlePrompt(d,combinedNote,ds);
+    else newPrompt=buildLifestylePrompt(d,combinedNote,ds);
+    currentPrompts[d.id][type]=newPrompt;
+    // Show progress
+    document.getElementById('progWrap').style.display='block';
+    document.getElementById('footerText').textContent='Regenerating '+d.name+' '+type+'...';
+    // Box uses original artwork ref; label/bottle use box ref; lifestyle uses box+bottle ref
+    if(type==='box') await genOne(di,type,newPrompt,3+di*4);
+    else if(type==='lifestyle') await genLifestyle(di,newPrompt,6+di*4);
+    else await genOneWithBoxRef(di,type,newPrompt,4+di*4);
+    document.getElementById('footerText').textContent='Regen complete — '+d.name+' '+type;
+  }catch(err){
+    console.error('regenSingle error:',err);
+    alert('Regen failed: '+err.message);
+  }
+}
+
+// ── SELECTION ─────────────────────────────────────
+function selectVar(idx){
+  selectedVar=idx;
+  DIRS.forEach((_,i)=>{
+    const card=document.getElementById('vcard-'+i);
+    const badge=document.getElementById('vbadge-'+i);
+    const btn=document.getElementById('vbtn-'+i);
+    if(i===idx){card.className='var-card selected';badge.style.display='block';btn.className='btn-select deselect';btn.textContent='Selected';}
+    else{card.className='var-card dimmed';badge.style.display='none';btn.className='btn-select';btn.textContent='Select';}
+  });
+  document.getElementById('footerText').innerHTML='Selected: <strong>'+DIRS[idx].name+'</strong>';
+  document.getElementById('approveBtn').disabled=false;
+}
+
+function clearSelection(){
+  selectedVar=null;
+  DIRS.forEach((_,i)=>{
+    const c=document.getElementById('vcard-'+i);if(c)c.className='var-card';
+    const b=document.getElementById('vbadge-'+i);if(b)b.style.display='none';
+    const btn=document.getElementById('vbtn-'+i);if(btn){btn.className='btn-select';btn.textContent='Select';}
+  });
+  document.getElementById('approveBtn').disabled=true;
+  document.getElementById('footerText').textContent='Select a variation';
+}
+
+// ── LIGHTBOX ──────────────────────────────────────
+function openLightbox(di,type){
+  const src=liveImgSrc[di]&&liveImgSrc[di][type];
+  if(!src)return;
+  document.getElementById('lbImg').src=src;
+  document.getElementById('lbLabel').textContent=(analysis&&analysis.scent_name?analysis.scent_name+' · ':'')+DIRS[di].name+' · '+type;
+  document.getElementById('lightbox').className='lightbox on';
+}
+function closeLightbox(){document.getElementById('lightbox').className='lightbox';}
+
+// ── APPROVE ───────────────────────────────────────
+function approveSku(){
+  const d=DIRS[selectedVar];const a=analysis;const p=palette;
+  const pal=getDirPal(d.id);
+  const img=document.getElementById('frame-'+selectedVar+'-box');
+  const imgEl=img&&img.querySelector('img');
+  approvedSkus.push({skuName:a.scent_name,dirName:d.name,imgSrc:imgEl?imgEl.src:null});
+  updateHistory();
+  const brief=`NEMAT — PRODUCTION BRIEF
+======================================================
+
+SKU:               ${a.brand_name} — ${a.scent_name}
+Category:          ${a.scent_category_detail}
+Size:              ${a.size_ml}
+Approved:          ${d.name} (${d.tag})
+Market:            India General Trade
+Date:              ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}
+
+------------------------------------------------------
+PALETTE
+------------------------------------------------------
+
+Base:              ${pal.bl}  ${pal.base}
+Accent (foil):     ${pal.al}  ${pal.accent}  <- HOT FOIL STAMP, NOT CMYK
+Secondary:         ${p.secL}  ${p.sec}
+
+------------------------------------------------------
+KLD — NEMAT ATTAR SERIES V1
+------------------------------------------------------
+
+TOP FLAP:          NSP diamond shield, centred, ${pal.al}
+FRONT FACE:        NEMAT > illustration > ${a.scent_name} > ATTAR
+LEFT PANEL:        MRP, net wt, manufacturer, QR, Made in India
+RIGHT PANEL:       ${(a.scripts_present||[]).filter(s=>s!=='English').join(' / ')} script, vertical
+BOTTOM FLAP:       Concentrated Fragrance, Free From Alcohol + Arabic
+
+------------------------------------------------------
+DIRECTION — ${d.name.toUpperCase()}
+------------------------------------------------------
+
+${d.desc}
+
+Illustration:      ${d.illus}
+Typography:        ${d.typo}
+Border:            ${d.border}
+Energy:            ${d.energy}
+
+------------------------------------------------------
+BOTTLE LABEL SPEC
+------------------------------------------------------
+
+Format:            Wraparound cylindrical label, ${a.size_ml} roll-on
+Design:            Miniature version of box direction — matching palette & style
+Elements:          NEMAT, ${a.scent_name}, ATTAR, small botanical motif, Free From Alcohol
+Print:             Same hot foil gold treatment as box
+
+------------------------------------------------------
+PRINT SPEC
+------------------------------------------------------
+
+Colour mode:       CMYK + Pantone spot for metallic
+Gold:              Hot foil stamp, ${pal.al}, DO NOT simulate in CMYK
+Base finish:       Matte soft-touch lamination
+Gold finish:       Spot UV gloss on all gold elements
+Bleed:             3mm, safe zone 5mm
+Resolution:        300dpi minimum, PDF/X-1a
+
+------------------------------------------------------
+NOTES
+------------------------------------------------------
+
+-> Dieline .AI/PDF provided separately
+-> Arabic typesetting: native typographer required
+-> Illustration: commission from AI concept — do not print AI image directly
+-> NSP shield: confirm placement before finalising
+-> Physical colour proof + foil test before production run
+
+======================================================`;
+  document.getElementById('briefDoc').textContent=brief;
+  document.getElementById('briefSub').textContent=a.scent_name+' · '+d.name+' · Approved';
+  document.getElementById('briefPanel').className='brief-panel on';
+  document.getElementById('footerBar').className='footer-bar';
+  document.getElementById('briefPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function updateHistory(){
+  if(!approvedSkus.length)return;
+  document.getElementById('historyPanel').className='history-panel on';
+  document.getElementById('historyRow').innerHTML=approvedSkus.map(s=>'<div class="history-card">'+(s.imgSrc?'<img class="h-thumb" src="'+s.imgSrc+'" alt="">':'<div class="h-thumb"></div>')+'<div class="h-info"><div class="h-name">'+s.skuName+'</div><div class="h-dir">'+s.dirName+'</div></div></div>').join('');
+  document.getElementById('hdrHistory').innerHTML=approvedSkus.map(s=>'<div class="sku-pill done">'+s.skuName+' &#10003;</div>').join('');
+}
+
+function nextSku(){
+  imgB64=null;imgMime='image/jpeg';imgSrc=null;analysis=null;palette=null;
+  basePrompts={};currentPrompts={};selectedVar=null;
+  versions=Array(4).fill(null).map(()=>({box:[],label:[],bottle:[],lifestyle:[]}));
+  liveImgSrc=Array(4).fill(null).map(()=>({box:null,label:null,bottle:null,lifestyle:null}));
+  document.getElementById('drop').className='drop';
+  document.getElementById('analysisStrip').style.display='none';
+  document.getElementById('varsSection').style.display='none';
+  document.getElementById('briefPanel').className='brief-panel';
+  document.getElementById('footerBar').className='footer-bar';
+  document.getElementById('genBtn').disabled=true;
+  document.getElementById('approveBtn').disabled=true;
+  document.getElementById('hdrSku').textContent='Next SKU';
+  document.getElementById('hdrSku').className='hdr-sku';
+  document.getElementById('progWrap').style.display='none';
+  document.getElementById('fileIn').value='';
+  setStage(0);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function dlBrief(){
+  const t=document.getElementById('briefDoc').textContent;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([t],{type:'text/plain'}));
+  a.download='nemat-'+(analysis&&analysis.scent_name?analysis.scent_name:'sku').toLowerCase().replace(/\s+/g,'-')+'-brief.txt';
+  a.click();
+}
+function cpBrief(){
+  navigator.clipboard.writeText(document.getElementById('briefDoc').textContent);
+  event.target.textContent='Copied';
+  setTimeout(()=>{event.target.textContent='Copy';},2000);
+}
+
+
+// ── APPROVAL PDF EXPORT ─────────────────────────
+function exportApprovalPDF(){
+  const a=analysis;
+  if(!a){alert('Generate variations first before exporting.');return;}
+
+  const skuName=a.scent_name||'SKU';
+  const skuDetail=a.scent_category_detail||'';
+  const skuSize=a.size_ml||'';
+  const d=a.deep||{};
+  const mp=d.market_positioning||{};
+  const ill=d.illustration||{};
+  const typ=d.typography||{};
+
+  // Collect all generated images
+  const vars=[];
+  DIRS.forEach((dir,di)=>{
+    const boxSrc=liveImgSrc[di]&&liveImgSrc[di].box;
+    const labelSrc=liveImgSrc[di]&&liveImgSrc[di].label;
+    const bottleSrc=liveImgSrc[di]&&liveImgSrc[di].bottle;
+    const lifeSrc=liveImgSrc[di]&&liveImgSrc[di].lifestyle;
+    vars.push({
+      name:dir.name, tag:dir.tag, desc:dir.desc,
+      box:boxSrc, label:labelSrc, bottle:bottleSrc, lifestyle:lifeSrc,
+      illus:dir.illus, typo:dir.typo, border:dir.border, energy:dir.energy
+    });
+  });
+
+  const hasAny=vars.some(v=>v.box||v.label||v.bottle||v.lifestyle);
+  if(!hasAny){alert('No generated images found. Please generate variations first.');return;}
+
+  const pal=palette||PALETTES.rose;
+  const approvedDir=selectedVar!==null?DIRS[selectedVar]:null;
+
+  // Build HTML for print window
+  const html=`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Nemat ${skuName} — Packaging Approval</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Montserrat',sans-serif;font-weight:300;background:#fff;color:#1a1a1a}
+  
+  /* COVER PAGE */
+  .cover{width:100%;height:297mm;max-height:297mm;overflow:hidden;background:#07070a;display:flex;flex-direction:column;justify-content:center;align-items:center;page-break-before:auto;page-break-after:always;page-break-inside:avoid;position:relative;padding:60px}
+  .cover-brand{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;letter-spacing:.4em;text-transform:uppercase;color:#c9a84c;margin-bottom:8px}
+  .cover-rule{width:80px;height:1px;background:#c9a84c;margin:16px auto}
+  .cover-ornament{font-size:48px;color:rgba(201,168,76,.12);letter-spacing:.1em;text-align:center;margin:8px 0;font-family:Georgia,serif}
+  .cover-sku{font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:rgba(201,168,76,.6);margin-bottom:6px}
+  .cover-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#eee8d8;margin-bottom:4px;text-align:center}
+  .cover-sub{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(238,232,216,.35);margin-top:8px}
+  .cover-date{position:absolute;bottom:40px;right:60px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(238,232,216,.25)}
+  .cover-confidential{position:absolute;bottom:40px;left:60px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(238,232,216,.2);border:1px solid rgba(238,232,216,.15);padding:4px 10px}
+
+  /* AUDIT PAGE */
+  .audit-page{padding:40px 50px;page-break-after:always;page-break-inside:avoid;max-height:297mm;overflow:hidden}
+  .page-header{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid #e0d8c8;padding-bottom:12px;margin-bottom:28px}
+  .page-header-brand{font-family:'Cormorant Garamond',serif;font-size:18px;letter-spacing:.3em;text-transform:uppercase;color:#c9a84c}
+  .page-header-right{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#aaa}
+  .audit-split{display:grid;grid-template-columns:200px 1fr;gap:32px;margin-bottom:28px}
+  .audit-original-label{font-size:7px;letter-spacing:.2em;text-transform:uppercase;color:#aaa;margin-bottom:8px}
+  .audit-original-img{width:100%;border:1px solid #e0d8c8;display:block;background:#f5f5f5}
+  .audit-original-placeholder{width:100%;aspect-ratio:2/3;background:#f0ede6;border:1px solid #e0d8c8;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aaa;letter-spacing:.1em;text-transform:uppercase}
+  .audit-findings{display:flex;flex-direction:column;gap:14px}
+  .audit-section-title{font-size:7px;letter-spacing:.22em;text-transform:uppercase;color:#c9a84c;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid #f0ede6}
+  .audit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .audit-item{background:#faf8f4;padding:8px 10px;border-left:2px solid #e0d8c8}
+  .audit-item-label{font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:#999;margin-bottom:3px}
+  .audit-item-value{font-size:9px;color:#1a1a1a;line-height:1.5}
+  .audit-item.highlight{border-left-color:#c9a84c;background:#fdf9f0}
+  .audit-item.problem{border-left-color:#c88060;background:#fdf5f0}
+  .priorities{margin-top:4px}
+  .priority-row{display:flex;gap:10px;padding:7px 10px;border-bottom:1px solid #f0ede6;align-items:flex-start}
+  .priority-row:last-child{border-bottom:none}
+  .priority-num{font-size:7px;font-weight:500;color:#c9a84c;letter-spacing:.1em;width:20px;flex-shrink:0;padding-top:1px}
+  .priority-text{font-size:9px;color:#333;line-height:1.5}
+
+  /* CONCEPT PAGES */
+  .concept-page{padding:36px 46px;page-break-after:always;page-break-inside:avoid}
+  .concept-page.approved-page{background:#fdf9f0}
+  .concept-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #e0d8c8}
+  .concept-meta{}
+  .concept-dir-name{font-family:'Cormorant Garamond',serif;font-size:22px;color:#c9a84c;margin-bottom:2px}
+  .concept-sku-line{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#999}
+  .concept-tag{font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:#aaa;border:1px solid #e0d8c8;padding:3px 8px;display:inline-block;margin-top:6px}
+  .approved-stamp{background:#c9a84c;color:#07070a;font-size:8px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;padding:5px 14px;display:inline-block}
+  .concept-images{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:18px}
+  .ci-slot{}
+  .ci-label{font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:#aaa;margin-bottom:5px}
+  .ci-img{width:100%;border:1px solid #e0d8c8;display:block;background:#f5f5f5}
+  .ci-img.portrait{aspect-ratio:2/3;object-fit:contain}
+  .ci-img.landscape{aspect-ratio:3/2;object-fit:contain}
+  .ci-img.tall{aspect-ratio:1/2;object-fit:contain}
+  .ci-placeholder{width:100%;background:#f0ede6;border:1px solid #e0d8c8;display:flex;align-items:center;justify-content:center;font-size:8px;color:#bbb;letter-spacing:.1em;text-transform:uppercase}
+  .ci-placeholder.portrait{aspect-ratio:2/3}
+  .ci-placeholder.landscape{aspect-ratio:3/2}
+  .ci-placeholder.tall{aspect-ratio:1/2}
+  .concept-specs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .cs-item{padding:7px 10px;background:#faf8f4;border-left:2px solid #e0d8c8}
+  .cs-label{font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:#aaa;margin-bottom:2px}
+  .cs-value{font-size:9px;color:#1a1a1a;line-height:1.4}
+  .concept-palette{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+  .cp-swatch{width:18px;height:18px;border:1px solid rgba(0,0,0,.1)}
+  .cp-label{font-size:8px;color:#666}
+  .concept-brief{font-size:9px;line-height:1.7;color:#444;padding:12px 14px;background:#faf8f4;border-left:3px solid #e0d8c8;font-style:italic}
+  .concept-brief.approved-brief{border-left-color:#c9a84c;background:#fdf9f0}
+  .concept-footer{margin-top:12px;padding-top:10px;border-top:1px solid #f0ede6;display:flex;justify-content:space-between;align-items:center}
+  .cf-note{font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:#bbb}
+  .cf-page{font-size:8px;color:#bbb}
+  
+  /* SUMMARY PAGE */
+  .summary-page{padding:40px 50px;page-break-inside:avoid}
+  .summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:20px}
+  .sg-card{border:1px solid #e0d8c8;overflow:hidden}
+  .sg-card.winner{border-color:#c9a84c;border-width:2px}
+  .sg-head{padding:10px 14px;background:#faf8f4;border-bottom:1px solid #e0d8c8;display:flex;justify-content:space-between;align-items:center}
+  .sg-card.winner .sg-head{background:#fdf9f0;border-bottom-color:#c9a84c}
+  .sg-name{font-family:'Cormorant Garamond',serif;font-size:13px;color:#c9a84c}
+  .sg-tag{font-size:7px;letter-spacing:.12em;text-transform:uppercase;color:#aaa}
+  .sg-body{display:grid;grid-template-columns:2fr 1.5fr 1fr 2fr;gap:0}
+  .sg-img-wrap{overflow:hidden;background:#f0ede6;position:relative}
+  .sg-img-wrap img{width:100%;height:100%;object-fit:contain;display:block}
+  .sg-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:7px;color:#bbb;letter-spacing:.08em;text-transform:uppercase;min-height:80px}
+  .sg-info{padding:8px 10px;background:#faf8f4;border-top:1px solid #e0d8c8;grid-column:1/-1}
+  .sg-desc{font-size:8px;color:#666;line-height:1.5}
+  .winner-banner{background:#c9a84c;color:#07070a;font-size:7px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;padding:3px 8px;display:inline-block;margin-top:4px}
+  
+  @media print{
+    body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    .cover{page-break-after:always;height:297mm;overflow:hidden}
+    .audit-page,.concept-page{page-break-after:always;page-break-inside:avoid}
+    .summary-page{page-break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <div class="cover-brand">Nemat</div>
+  <div class="cover-rule"></div>
+  <div class="cover-ornament">✦ ✦ ✦</div>
+  <div class="cover-sku">Packaging Redesign · ${skuName} · ${skuSize}</div>
+  <div class="cover-title">Design Approval Document</div>
+  <div class="cover-sub">${skuDetail} · Indian General Trade Series</div>
+  <div class="cover-date">${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+  <div class="cover-confidential">Confidential</div>
+</div>
+
+<!-- AUDIT PAGE -->
+<div class="audit-page">
+  <div class="page-header">
+    <div class="page-header-brand">Nemat · ${skuName}</div>
+    <div class="page-header-right">Design Audit · Existing Artwork</div>
+  </div>
+  <div class="audit-split">
+    <div>
+      <div class="audit-original-label">Current Artwork</div>
+      ${imgSrc?`<img class="audit-original-img" src="${imgSrc}" alt="Current artwork">`:`<div class="audit-original-placeholder">Original artwork</div>`}
+    </div>
+    <div class="audit-findings">
+      <div>
+        <div class="audit-section-title">Illustration</div>
+        <div class="audit-grid">
+          <div class="audit-item"><div class="audit-item-label">Subject</div><div class="audit-item-value">${ill.subject||'—'}</div></div>
+          <div class="audit-item problem"><div class="audit-item-label">Rendering Style</div><div class="audit-item-value">${ill.rendering_style||'—'}</div></div>
+          <div class="audit-item problem" style="grid-column:1/-1"><div class="audit-item-label">Verdict</div><div class="audit-item-value">${ill.illustration_verdict||ill.rendering_verdict||'—'}</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="audit-section-title">Typography</div>
+        <div class="audit-grid">
+          <div class="audit-item"><div class="audit-item-label">Fonts in Use</div><div class="audit-item-value">${typ.font_count||'—'}</div></div>
+          <div class="audit-item"><div class="audit-item-label">Hierarchy</div><div class="audit-item-value">${typ.hierarchy_verdict||'—'}</div></div>
+          <div class="audit-item problem" style="grid-column:1/-1"><div class="audit-item-label">Problems</div><div class="audit-item-value">${typ.typography_problems||'—'}</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="audit-section-title">Market Position</div>
+        <div class="audit-grid">
+          <div class="audit-item highlight"><div class="audit-item-label">Strongest Asset</div><div class="audit-item-value">${mp.strongest_asset||'—'}</div></div>
+          <div class="audit-item problem"><div class="audit-item-label">Most Damaging Problem</div><div class="audit-item-value">${mp.most_damaging_problem||'—'}</div></div>
+          <div class="audit-item"><div class="audit-item-label">Current Reads As</div><div class="audit-item-value">${mp.shelf_tier_current||'—'} · ${mp.closest_competitor_feel||'—'}</div></div>
+          <div class="audit-item highlight"><div class="audit-item-label">Target Tier</div><div class="audit-item-value">${mp.shelf_tier_target||'Premium Indian General Trade'}</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="audit-section-title">Redesign Priorities</div>
+        <div class="priorities">
+          <div class="priority-row"><div class="priority-num">01</div><div class="priority-text">${mp.redesign_priority_1||'—'}</div></div>
+          <div class="priority-row"><div class="priority-num">02</div><div class="priority-text">${mp.redesign_priority_2||'—'}</div></div>
+          <div class="priority-row"><div class="priority-num">03</div><div class="priority-text">${mp.redesign_priority_3||'—'}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONCEPT PAGES — one per direction -->
+${vars.map((v,vi)=>{
+  const isApproved=approvedDir&&approvedDir.name===v.name;
+  const dirPalId=Object.keys({
+    'grand-heritage':pal.gh,
+    'indian-maximalist':pal.mx,
+    'refined-craft':pal.rc,
+    'contemporary-heritage':pal.ch
+  })[vi];
+  const dp={
+    'grand-heritage':   {base:pal.gh&&pal.gh.base||'#1a0508',bl:pal.gh&&pal.gh.bl||'Deep Crimson',accent:pal.gold||'#c9a84c'},
+    'indian-maximalist':{base:pal.mx&&pal.mx.base||'#0a3d35',bl:pal.mx&&pal.mx.bl||'Jewel',accent:pal.mx&&pal.mx.ac||pal.gold||'#e8c84a'},
+    'refined-craft':    {base:pal.rc&&pal.rc.base||'#12030a',bl:pal.rc&&pal.rc.bl||'Deep',accent:pal.gold||'#c9a84c'},
+    'contemporary-heritage':{base:pal.ch&&pal.ch.base||'#1f0a10',bl:pal.ch&&pal.ch.bl||'Dark',accent:pal.gold||'#c9a84c'},
+  };
+  const p=dp[DIRS[vi].id]||dp['grand-heritage'];
+  return `
+<div class="concept-page${isApproved?' approved-page':''}">
+  <div class="page-header">
+    <div class="page-header-brand">Nemat · ${skuName}</div>
+    <div class="page-header-right">${v.tag} of 4</div>
+  </div>
+  <div class="concept-header">
+    <div class="concept-meta">
+      <div class="concept-dir-name">${v.name}</div>
+      <div class="concept-sku-line">${skuName} · ${skuDetail} · ${skuSize}</div>
+      <div class="concept-tag">${v.tag}</div>
+    </div>
+    ${isApproved?`<div class="approved-stamp">Approved Direction</div>`:''}
+  </div>
+  <div class="concept-images">
+    <div class="ci-slot">
+      <div class="ci-label">Box — Front Face Flat</div>
+      ${v.box?`<img class="ci-img portrait" src="${v.box}" alt="Box flat">`:`<div class="ci-placeholder portrait">Generating...</div>`}
+    </div>
+    <div class="ci-slot">
+      <div class="ci-label">Label — Flat Artwork</div>
+      ${v.label?`<img class="ci-img landscape" src="${v.label}" alt="Label flat">`:`<div class="ci-placeholder landscape">Generating...</div>`}
+    </div>
+    <div class="ci-slot">
+      <div class="ci-label">Bottle — Product Mockup</div>
+      ${v.bottle?`<img class="ci-img tall" src="${v.bottle}" alt="Bottle mockup">`:`<div class="ci-placeholder tall">Generating...</div>`}
+    </div>
+    <div class="ci-slot">
+      <div class="ci-label">Lifestyle — Editorial</div>
+      ${v.lifestyle?`<img class="ci-img landscape" src="${v.lifestyle}" alt="Lifestyle shot">`:`<div class="ci-placeholder landscape">Generating...</div>`}
+    </div>
+  </div>
+  <div class="concept-palette">
+    <div class="cp-swatch" style="background:${p.base}"></div>
+    <div class="cp-swatch" style="background:${p.accent}"></div>
+    <div class="cp-swatch" style="background:${pal.sec||'#9c5c5c'}"></div>
+    <div class="cp-label">${p.bl} · ${DIRS[vi].id==='indian-maximalist'?'Bright Gold':'22k Gold'} · ${pal.secL||'Accent'}</div>
+  </div>
+  <div class="concept-specs">
+    <div class="cs-item"><div class="cs-label">Illustration</div><div class="cs-value">${v.illus}</div></div>
+    <div class="cs-item"><div class="cs-label">Typography</div><div class="cs-value">${v.typo}</div></div>
+    <div class="cs-item"><div class="cs-label">Border</div><div class="cs-value">${v.border}</div></div>
+    <div class="cs-item"><div class="cs-label">Design Energy</div><div class="cs-value">${v.energy}</div></div>
+  </div>
+  <div class="concept-brief${isApproved?' approved-brief':''}">${v.desc}</div>
+  <div class="concept-footer">
+    <div class="cf-note">Nemat Attar Series · Indian General Trade · Confidential</div>
+    <div class="cf-page">${vi+2} / ${vars.length+2}</div>
+  </div>
+</div>`}).join('')}
+
+<!-- SUMMARY PAGE -->
+<div class="summary-page">
+  <div class="page-header">
+    <div class="page-header-brand">Nemat · ${skuName}</div>
+    <div class="page-header-right">All Options · Summary</div>
+  </div>
+  <div style="margin-bottom:16px">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#c9a84c;margin-bottom:4px">All Design Options</div>
+    <div style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#aaa">${skuName} · ${skuDetail} · ${skuSize} · ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+  </div>
+  <div class="summary-grid">
+    ${vars.map((v,vi)=>{
+      const isApproved=approvedDir&&approvedDir.name===v.name;
+      return `
+      <div class="sg-card${isApproved?' winner':''}">
+        <div class="sg-head">
+          <div class="sg-name">${v.name}</div>
+          <div class="sg-tag">${v.tag}</div>
+        </div>
+        <div class="sg-body">
+          <div class="sg-img-wrap" style="aspect-ratio:2/3">
+            ${v.box?`<img src="${v.box}" alt="box">`:`<div class="sg-img-placeholder">Box</div>`}
+          </div>
+          <div class="sg-img-wrap" style="aspect-ratio:2/3">
+            ${v.label?`<img src="${v.label}" alt="label">`:`<div class="sg-img-placeholder">Label</div>`}
+          </div>
+          <div class="sg-img-wrap" style="aspect-ratio:2/3">
+            ${v.bottle?`<img src="${v.bottle}" alt="bottle">`:`<div class="sg-img-placeholder">Bottle</div>`}
+          </div>
+          <div class="sg-img-wrap" style="aspect-ratio:16/10">
+            ${v.lifestyle?`<img src="${v.lifestyle}" alt="lifestyle">`:`<div class="sg-img-placeholder">Lifestyle</div>`}
+          </div>
+          <div class="sg-info">
+            <div class="sg-desc">${v.desc}</div>
+            ${isApproved?`<div class="winner-banner">Approved Direction</div>`:''}
+          </div>
+        </div>
+      </div>`}).join('')}
+  </div>
+  <div style="margin-top:28px;padding-top:16px;border-top:1px solid #e0d8c8;display:flex;justify-content:space-between;align-items:flex-end">
+    <div>
+      <div style="font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:#aaa;margin-bottom:4px">Prepared by</div>
+      <div style="font-size:9px;color:#666">Nemat Packaging Studio · AI-Assisted Design Direction</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:#aaa;margin-bottom:4px">Approval</div>
+      <div style="width:160px;border-bottom:1px solid #ccc;margin-bottom:4px;height:24px"></div>
+      <div style="font-size:8px;color:#aaa">Signature &amp; Date</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>`;
+
+  const win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  win.onload=()=>{
+    setTimeout(()=>{
+      win.print();
+    },800);
+  };
+}
+</script>
+</body>
+</html>

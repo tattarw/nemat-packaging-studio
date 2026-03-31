@@ -1,7 +1,7 @@
 {
   "name": "nemat-packaging-studio",
   "version": "8.0.0",
-  "description": "Nemat Packaging Studio - AI-powered attar packaging redesign tool",
+  "description": "Nemat Packaging Studio — AI-powered attar packaging redesign tool",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
